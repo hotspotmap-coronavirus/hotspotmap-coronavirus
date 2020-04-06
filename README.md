@@ -1,1 +1,1 @@
-# hotspotmap-coronavirus
+# coronavirushotspots
