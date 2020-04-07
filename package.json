@@ -1,0 +1,19 @@
+{
+  "name": "coronavirusmap",
+  "version": "1.0.0",
+  "description": "Coronavirus visualization",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Justin Bishay",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "cheerio": "^1.0.0-rc.3",
+    "connect": "^3.7.0",
+    "d3-queue": "^3.0.7",
+    "express": "^4.17.1",
+    "serve-static": "^1.14.1"
+  }
+}
