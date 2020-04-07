@@ -130,7 +130,7 @@ console.log(yest.month + "-" + yest.day + "-" + yest.year);
 console.log(yest2.month + "-" + yest2.day + "-" + yest2.year);
 
 // begin compiling data
-Promise.all([d3.csv("./statelatlong.csv"), d3.csv("./canadaprovinces.csv")])
+Promise.all([d3.csv("./data/statelatlong.csv"), d3.csv("./data/canadaprovinces.csv")])
 .then(function (locations) {
     var stateOrder = [];
     var filesUSA = [];
@@ -194,8 +194,8 @@ Promise.all([
     d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/" + yest.month + "-" + yest.day + "-" + yest.year + ".csv"),
     d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/" + currentMonth + "-" + currentDay + "-" + currentYear + ".csv"),
     d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/" + yest2.month + "-" + yest2.day + "-" + yest2.year + ".csv"),
-    d3.csv("./statelatlong.csv"),
-    d3.csv("./canadaprovinces.csv")
+    d3.csv("./data/statelatlong.csv"),
+    d3.csv("./data/canadaprovinces.csv")
 ]).then(function (data) {
     // global totals counters
     var globalActive = 0;
