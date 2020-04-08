@@ -362,7 +362,7 @@ Promise.all([
             dailyInfo = 'New Cases: <strong>' + caseChange + '</strong><br>';
         }
         else {
-            dailyInfo = 'New Cases: <strong class="caseChange"><i class="arrow up icon"></i>' + caseChange + '</strong><br>';
+            dailyInfo = 'New Cases: <strong class="caseChange">' + caseChange + '</strong><br>';
         }
 
         var rateChange = caseChange;
