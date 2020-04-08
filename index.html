@@ -44,28 +44,27 @@
             <div class="ui equal width grid" id="info">
                 <div class="row" style="margin-bottom: -1em; padding-left: 1em; padding-right: 1em;">
                     <div class="column">
-                        <h3>Daily Increase</h3>
+                        <h3 style="margin-bottom: 0.5em;">Daily Increase</h3>
                         <strong id="changeCount"></strong>
                     </div>
                     <div class="column">
-                        <h3>Active Cases</h3>
+                        <h3 style="margin-bottom: 0.5em;">Active Cases</h3>
                         <strong id="activeCount"></strong>
                     </div>
                 </div>
                 <div class="row" style="padding-left: 1em; padding-right: 1em;">
                     <div class="column">
-                        <h3>Recovered</h3>
+                        <h3 style="margin-bottom: 0.5em;">Recovered</h3>
                         <strong id="recoveredCount"></strong>
                     </div>
                     <div class="column">
-                        <h3>Deaths</h3>
+                        <h3 style="margin-bottom: 0.5em;">Deaths</h3>
                         <strong id="deathCount"></strong>
                     </div>
                 </div>
                 <div class="row">
                     <div class="column">
                         <h1 id="infoTitle">Global Data</h1>
-                        <h1 style="font-size: 1.25em; margin-top: 0;">Cases</h1>
                         <canvas id="infectionChart" height=150></canvas>
                         <div class="four ui buttons mini">
                             <button class="ui yellow button mini" id="activeButton" onclick="clickChartButton('activeButton')">Active Cases</button>
