@@ -845,6 +845,11 @@ function makeChart(region, province = "") {
                 recs.push(parseInt(data[1][i].Recovered, 10));
             }
 
+            // catch mismatch length in recovery data
+            while (recs.length > confs.length && recs.length != confs.length) {
+                recs.splice(0, 1);
+            }
+
             // create active cases data
             for (let i = 0; i < confs.length; i++) {
                 active.push(confs[i] - recs[i] - deaths[i]);
@@ -872,11 +877,6 @@ function makeChart(region, province = "") {
             dateLabels.splice(0, firstIdx);
             increase.splice(0, firstIdx);
             active.splice(0, firstIdx);
-            
-            // catch mismatch length in recovery data
-            if (recs.length != confs.length) {
-                recs.splice(0, 1);
-            }
         }
         // Charts for all other regions
         else {
@@ -914,6 +914,11 @@ function makeChart(region, province = "") {
                 }
             }
 
+            // catch mismatch length in recovery data
+            while (recs.length > confs.length && recs.length != confs.length) {
+                recs.splice(0, 1);
+            }
+
             // create active cases data
             for (let i = 0; i < confs.length; i++) {
                 active.push(confs[i] - recs[i] - deaths[i]);
@@ -941,11 +946,6 @@ function makeChart(region, province = "") {
             dateLabels.splice(0, firstIdx);
             increase.splice(0, firstIdx);
             active.splice(0, firstIdx);
-
-            // catch mismatch length in recovery data
-            if (recs.length != confs.length) {
-                recs.splice(0, 1);
-            }
         }
 
         // show/hide series depending on current button selection
