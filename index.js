@@ -315,7 +315,7 @@ Promise.all([
     document.getElementById('activeCount').innerHTML = globalActive.toLocaleString();
     document.getElementById('recoveredCount').innerHTML = globalRecovered.toLocaleString();
     document.getElementById('deathCount').innerHTML = globalDeaths.toLocaleString();
-    document.getElementById('changeCount').innerHTML = '<i class="arrow up icon"></i>' + globalNewCases.toLocaleString();
+    document.getElementById('changeCount').innerHTML = globalNewCases.toLocaleString();
 
     // function to take data and plot onto map
     function plotPoint(today, yesterday, twoDaysAgo) {
@@ -478,7 +478,7 @@ Promise.all([
     mymap.on('zoomend', function() {
         var zoom = mymap.getZoom();
         var zoom2 = radii;
-        var zoom3 = [2, 3, 5, 8, 12, 16, 22];
+        var zoom3 = [2, 3, 5, 8, 12, 15, 20];
         var zoom4 = [4, 7, 11, 15, 19, 23, 30];
         var zoom5 = [6, 10, 14, 19, 24, 29, 36];
 
@@ -658,7 +658,7 @@ Promise.all([
         }
         mymap.scrollWheelZoom.enable();
     });
-})})})});
+})})})}); // <== dont worry about it...
 
 // initialize chart here so it can be destroyed for redraws
 var canvas = document.getElementById('infectionChart');
