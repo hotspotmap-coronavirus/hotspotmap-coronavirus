@@ -675,6 +675,20 @@ var chart = new Chart(ctx, {
     }
 });
 
+var canvas2 = document.getElementById('trajectoryChart');
+var ctx2 = canvas2.getContext('2d');
+var trajectory = new Chart(ctx2, {
+    type: 'line',
+    options: {
+        legend: {
+            position: 'bottom',
+            labels: {
+                boxWidth: 12
+            }
+        }
+    }
+});
+
 // create chart based on selected region and province
 function makeChart(region, province = "") {
     var files = [d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"),
@@ -721,6 +735,7 @@ function makeChart(region, province = "") {
 
         document.getElementById('infoTitle').innerHTML = title;
         chart.destroy();
+        trajectory.destroy();
 
         var dateLabels = [];
         var confs = [];
@@ -728,6 +743,8 @@ function makeChart(region, province = "") {
         var deaths = [];
         var active = [];
         var increase = [];
+        var trend = [];
+        var exponential = [];
         if (region == "Global") {
             for (let [key, value] of Object.entries(data[0][0])) {
                 if (key != "Province/State" && key != "Country/Region" && key != "Lat" && key != "Long") {
@@ -791,6 +808,16 @@ function makeChart(region, province = "") {
                 else {
                     increase.push(confs[i+1] - confs[i]);
                 }
+            }
+
+            // create trajectory data
+            for (let i = 6; i < confs.length; i++) {
+                var weeklyGrowth = 0;
+                for (let j = i - 6; j <= i; j++) {
+                    weeklyGrowth += increase[j];
+                }
+                trend.push({x: confs[i], y: weeklyGrowth});
+                exponential.push({x: confs[i], y: confs[i]});
             }
         }
         // Charts for US states
@@ -866,6 +893,16 @@ function makeChart(region, province = "") {
                 }
             }
 
+            // create trajectory data from entire data length
+            for (let i = 6; i < confs.length; i++) {
+                var weeklyGrowth = 0;
+                for (let j = i - 6; j <= i; j++) {
+                    weeklyGrowth += increase[j];
+                }
+                trend.push({x: confs[i], y: weeklyGrowth});
+                exponential.push({x: confs[i], y: confs[i]});
+            }
+
             // chop to 100th confirmed case, or first confirmed case if data is too small
             var firstIdx = confs.findIndex(val => val >= 100);
             if (firstIdx == -1 || firstIdx > confs.length - 5) {
@@ -935,6 +972,16 @@ function makeChart(region, province = "") {
                 }
             }
 
+            // create trajectory data from entire data length
+            for (let i = 6; i < confs.length; i++) {
+                var weeklyGrowth = 0;
+                for (let j = i - 6; j <= i; j++) {
+                    weeklyGrowth += increase[j];
+                }
+                trend.push({x: confs[i], y: weeklyGrowth});
+                exponential.push({x: confs[i], y: confs[i]});
+            }
+
             // chop to 100th confirmed case, or first confirmed case if data is too small
             var firstIdx = confs.findIndex(val => val >= 100);
             if (firstIdx == -1 || firstIdx > confs.length - 5) {
@@ -956,6 +1003,22 @@ function makeChart(region, province = "") {
 
         // draw chart
         Chart.defaults.global.defaultFontColor = 'lightgray';
+        Chart.scaleService.updateScaleDefaults('logarithmic', {
+            ticks: {
+                callback: function(tick, index, ticks) {
+                    if (tick > 999 && tick < 1000000) {
+                        return (tick / 1000).toFixed(0) + 'k';
+                    } 
+                    else if (tick >= 1000000) {
+                        return (tick / 1000000).toFixed(0) + 'M';
+                    } 
+                    else {
+                        return tick;
+                    }
+                }
+            }
+        });
+
         chart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -1024,6 +1087,74 @@ function makeChart(region, province = "") {
                 }
             }
         });
+
+        trajectory = new Chart(ctx2, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    {
+                        label: "Current Trajectory",
+                        backgroundColor: "orange",
+                        borderColor: "orange",
+                        data: trend,
+                        pointRadius: 1,
+                        fill: false,
+                        showLine: true
+                    },
+                    {
+                        label: "Exponential Growth",
+                        backgroundColor: "pink",
+                        borderColor: "pink",
+                        data: exponential,
+                        pointRadius: 1,
+                        fill: false,
+                        showLine: true
+                    }
+                ]
+            },
+            options: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        boxWidth: 12
+                    }
+                },
+                scales: {
+                    xAxes: [{
+                        gridLines: { 
+                            display: false,
+                            color: "#4f4f4f",
+                            zeroLineColor: '#e0e0e0'
+                            },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Total Confirmed Cases',
+                            padding: -4
+                        },
+                        type: 'logarithmic',
+                        ticks: {
+                            maxTicksLimit: 8,
+                        }
+                    }],
+                    yAxes: [{
+                        gridLines: { 
+                            display: false,
+                            color: "#4f4f4f", 
+                            zeroLineColor: '#e0e0e0'
+                            },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'New Cases (Weekly)'
+                        },
+                        type: 'logarithmic',
+                        ticks: {
+                            maxTicksLimit: 4,
+                        }
+                    }]
+                }
+            }
+        });
     });
 }
 
@@ -1071,4 +1202,4 @@ dat.setUTCHours(24);
 dat.setUTCMinutes(0);
 dat.setUTCSeconds(0);
 
-document.getElementById('lastUpdated').innerHTML = 'Updated at ' + dat.toLocaleString();
+document.getElementById('lastUpdated').innerHTML = 'Updated at ' + dat.toLocaleString() + ' | ';

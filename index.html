@@ -37,34 +37,69 @@
         <div id="titleBar">
             <strong style="font-size: 2em; line-height: 0.8em;">COVID-19 <span style="color: #ed2d1f;">New Daily Cases</span> and <span style="color: gold;">Active Cases</span> Global Hot Spots
                 <br><span style="font-size: 0.5em;" id="lastUpdated">Updated: 04/05/2020 at 11:55 PM GMT</span>
+                <span style="font-size: 0.5em;">Data is provided by Johns Hopkins CSSE from <a href="https://github.com/CSSEGISandData/COVID-19" target="_blank">GitHub</a></span>
             </strong>
         </div>
         <div id="mainGrid">
-            <div id="map"></div>
-            <div class="ui equal width grid" id="info">
-                <div class="row" style="margin-bottom: -1em; padding-left: 1em; padding-right: 1em;">
-                    <div class="column">
+            <div>
+                <div id="globalNums">
+                    <div style="text-align: center;">
                         <h3 style="margin-bottom: 0.5em;">Daily Increase</h3>
                         <strong id="changeCount"></strong>
                     </div>
-                    <div class="column">
+                    <div style="text-align: center;">
                         <h3 style="margin-bottom: 0.5em;">Active Cases</h3>
                         <strong id="activeCount"></strong>
                     </div>
-                </div>
-                <div class="row" style="padding-left: 1em; padding-right: 1em;">
-                    <div class="column">
+                    <div style="text-align: center;">
                         <h3 style="margin-bottom: 0.5em;">Recovered</h3>
                         <strong id="recoveredCount"></strong>
                     </div>
-                    <div class="column">
+                    <div style="text-align: center;">
                         <h3 style="margin-bottom: 0.5em;">Deaths</h3>
                         <strong id="deathCount"></strong>
                     </div>
                 </div>
-                <div class="row">
+                <div id="map"></div>
+                <div class="footer">
+                    <p style="margin-top: 0.5em;">Developed by Justin Bishay, Computer Science M.S. Student, <a href="https://jkbishay.github.io/" target="_blank">Website</a></p>
+                    <div style="display: grid; grid-template-columns: 30% 40% 30%; align-items: center; text-align: center; margin-top: -1em; font-size: 0.9em;">
+                        <div>
+                            <p>
+                                <a href="http://datascience.hawaii.edu/" target="_blank" style="color: lightgray;">
+                                    <img target="_blank" src="./images/HIDSILogo.png" style="width: 20px; height: 20px;"/> Hawaiʻi Data Science Institute 
+                                </a>
+                            </p>
+                        </div>
+                        <div>
+                            <p>
+                                <a href="https://www.lavaflow.info/" target="_blank" style="color: lightgray;">
+                                    <img target="_blank" src="./images/lavaLogo.png" style="width: 45px; height: 22px;"/> Laboratory for Advanced Visualization & Applications 
+                                </a>
+                            </p>
+                        </div>
+                        <div>
+                            <p>
+                                <a href="https://manoa.hawaii.edu/" target="_blank" style="color: lightgray;">
+                                    <img target="_blank" src="./images/UHMLogo.png" style="width: 20px; height: 20px;"/> University of Hawaiʻi at Mānoa 
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                    
+                
+            <div class="ui equal width grid" id="info">
+                <div class="row" style="margin-bottom: -1em;">
                     <div class="column">
                         <h1 id="infoTitle">Global Data</h1>
+                        <canvas id="trajectoryChart" height=160></canvas>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="column">
+                        <h3 style="margin-bottom: 0.5em; margin-top: -0.5em;">Cases Over Time</h3>
                         <canvas id="infectionChart" height=150></canvas>
                         <div class="four ui buttons mini">
                             <button class="ui yellow button mini" id="activeButton" onclick="clickChartButton('activeButton')">Active Cases</button>
@@ -94,39 +129,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="column">
-                        <p style="font-size: 0.8em; margin-top: -2em;">Data is provided by Johns Hopkins CSSE from <a href="https://github.com/CSSEGISandData/COVID-19" target="_blank">GitHub</a></p>
-                    </div>
-                </div>
             </div>
         </div>
-        <div class="footer">
-            <p>Developed by Justin Bishay, Computer Science M.S. Student, <a href="https://jkbishay.github.io/" target="_blank">Website</a></p>
-            <div class="ui three column grid" style="margin-top: -2em; padding-left: 9%; padding-right: 9%; font-size: 0.9em;">
-                <div class="column">
-                    <p>
-                        <a href="http://datascience.hawaii.edu/" target="_blank" style="color: lightgray;">
-                            <img target="_blank" src="./images/HIDSILogo.png" style="width: 20px; height: 20px;"/> Hawaiʻi Data Science Institute 
-                        </a>
-                    </p>
-                </div>
-                <div class="column">
-                    <p>
-                        <a href="https://www.lavaflow.info/" target="_blank" style="color: lightgray;">
-                            <img target="_blank" src="./images/lavaLogo.png" style="width: 45px; height: 22px;"/> Laboratory for Advanced Visualization & Applications 
-                        </a>
-                    </p>
-                </div>
-                <div class="column">
-                    <p>
-                        <a href="https://manoa.hawaii.edu/" target="_blank" style="color: lightgray;">
-                            <img target="_blank" src="./images/UHMLogo.png" style="width: 20px; height: 20px;"/> University of Hawaiʻi at Mānoa 
-                        </a>
-                    </p>
-                </div>
-            </div>
-        </div>
+        
         <script type="text/javascript" src="./index.js"></script>
     </body>
 </html>
