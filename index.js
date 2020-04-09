@@ -1103,8 +1103,8 @@ function makeChart(region, province = "") {
                     },
                     {
                         label: "Exponential Growth",
-                        backgroundColor: "pink",
-                        borderColor: "pink",
+                        backgroundColor: "#a600ff",
+                        borderColor: "#a600ff",
                         data: exponential,
                         pointRadius: 1,
                         fill: false,
@@ -1130,7 +1130,7 @@ function makeChart(region, province = "") {
                         scaleLabel: {
                             display: true,
                             labelString: 'Total Confirmed Cases',
-                            padding: -4
+                            padding: -3
                         },
                         type: 'logarithmic',
                         ticks: {
