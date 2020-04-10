@@ -175,7 +175,8 @@ Promise.all(filesUSA).then(function (USstates) {
     for (let i = 0; i < USstates.length; i++) {
         USrecs.push({
             State: stateOrder[i],
-            Recovered: USstates[i][0].Recovered
+            Recovered: USstates[i][0].Recovered,
+            Recovered_Y: USstates[i][1].Recovered
         });
     }
 
@@ -185,7 +186,8 @@ Promise.all(filesCanada).then(function (canadaStates) {
     for (let i = 0; i < canadaStates.length; i++) {
         canadaRecs.push({
             Province: canadaOrder[i],
-            Recovered: canadaStates[i][0].Recovered
+            Recovered: canadaStates[i][0].Recovered,
+            Recovered_Y: canadaStates[i][1].Recovered
         });
     }
 
@@ -203,19 +205,25 @@ Promise.all([
     var globalDeaths = 0;
     var globalNewCases = 0;
 
+    var globalA_Y = 0;
+    var globalR_Y = 0;
+    var globalD_Y = 0;
+    var globalN_Y = 0;
+
     var markers = [];
     var radii = [1, 2, 3, 5, 7, 10, 13];
 
     // process data for non-USA regions
     for (let i = 0; i < data[1].length; i++) {
         var today = data[1][i];
+        var yesterday = data[0].find(item => item['Country_Region'] === today['Country_Region'] && item['Province_State'] === today['Province_State']);
+        var yesterYesterday = data[2].find(item => item['Country_Region'] === today['Country_Region'] && item['Province_State'] === today['Province_State']);
         if (today.Country_Region !== 'US' && today.Country_Region !== 'Canada' && today.Confirmed != 0) {
-            var yesterday = data[0].find(item => item['Country_Region'] === today['Country_Region'] && item['Province_State'] === today['Province_State']);
-            var yesterYesterday = data[2].find(item => item['Country_Region'] === today['Country_Region'] && item['Province_State'] === today['Province_State']);
             plotPoint(today, yesterday, yesterYesterday);
         }
         else if ((today.Country_Region === 'US' || today.Country_Region === 'Canada') && today.Province_State === 'Recovered') {
             globalRecovered += parseInt(today.Recovered, 10);
+            globalR_Y += parseInt(yesterday.Recovered, 10);
         }
     }
 
@@ -251,11 +259,17 @@ Promise.all([
         rec = 0;
         dead = 0;
 
+        if (data[3][i].City != "Northern Mariana Islands") {
+            rec = parseInt(USrecs.find(item => item.State == data[3][i].City).Recovered_Y, 10);
+        }
+
+        console.log(rec);
+
         // yesterday's data
         for (let j = 0; j < data[0].length; j++) {
             if (data[0][j].Province_State === data[3][i].City) {
                 conf += parseInt(data[0][j].Confirmed, 10);
-                rec += parseInt(data[0][j].Recovered, 10);
+                //rec += parseInt(data[0][j].Recovered, 10);
                 dead += parseInt(data[0][j].Deaths, 10);
             }
         }
@@ -304,6 +318,7 @@ Promise.all([
         var today = data[1].find(item => item.Province_State == data[4][i].Province);
         today.Recovered = parseInt(canadaRecs.find(item => item.Province == data[4][i].Province).Recovered, 10);
         var yesterday = data[0].find(item => item.Province_State == data[4][i].Province);
+        yesterday.Recovered = parseInt(canadaRecs.find(item => item.Province == data[4][i].Province).Recovered_Y, 10);
         var twoDaysBack = data[2].find(item => item.Province_State == data[4][i].Province);
 
         // do not plot points if no cases exist
@@ -312,10 +327,34 @@ Promise.all([
         }
     }
 
+    // Update doc with global numbers
     document.getElementById('activeCount').innerHTML = globalActive.toLocaleString();
     document.getElementById('recoveredCount').innerHTML = globalRecovered.toLocaleString();
     document.getElementById('deathCount').innerHTML = globalDeaths.toLocaleString();
     document.getElementById('changeCount').innerHTML = globalNewCases.toLocaleString();
+
+    document.getElementById('recoveredDiff').innerHTML = '+' + (globalRecovered - globalR_Y).toLocaleString() + ' from yesterday';
+    document.getElementById('deathDiff').innerHTML = '+' + (globalDeaths - globalD_Y).toLocaleString() + ' from yesterday';
+    if (globalNewCases - globalN_Y < 0) {
+        document.getElementById('changeDiff').innerHTML = '<i class="arrow down icon"></i>' 
+            + ((globalNewCases - globalN_Y) * -1).toLocaleString() + ' from yesterday';
+        document.getElementById('changeDiff').style.color = 'cyan';
+    } 
+    else {
+        document.getElementById('changeDiff').innerHTML = '<i class="arrow up icon"></i>' 
+            + ((globalNewCases - globalN_Y) * -1).toLocaleString() + ' from yesterday';
+        document.getElementById('changeDiff').style.color = 'orange';
+    }
+
+    if (globalActive - globalA_Y < 0) {
+        document.getElementById('activeDiff').innerHTML = (globalActive - globalA_Y).toLocaleString() + ' from yesterday';
+        document.getElementById('activeDiff').style.color = 'cyan';
+    } 
+    else {
+        document.getElementById('activeDiff').innerHTML = '+' + (globalActive - globalA_Y).toLocaleString() + ' from yesterday';
+        document.getElementById('activeDiff').style.color = 'orange';
+    }
+
 
     // function to take data and plot onto map
     function plotPoint(today, yesterday, twoDaysAgo) {
@@ -324,12 +363,17 @@ Promise.all([
             today.Active = parseInt(today.Confirmed, 10) - parseInt(today.Recovered, 10) - parseInt(today.Deaths, 10);
         }
 
+        yesterday.Active = parseInt(yesterday.Confirmed, 10) - parseInt(yesterday.Recovered, 10) - parseInt(yesterday.Deaths, 10);
+
         globalActive += parseInt(today.Active, 10);
         globalDeaths += parseInt(today.Deaths, 10);
+        globalA_Y += parseInt(yesterday.Active, 10);
+        globalD_Y += parseInt(yesterday.Deaths, 10);
 
         // count USA and Canada recoveries from JHU for global total
         if (today.Country_Region !== 'US' && today.Country_Region !== 'Canada') {
             globalRecovered += parseInt(today.Recovered, 10);
+            globalR_Y += parseInt(yesterday.Recovered, 10);
         }
 
         var radius = radii[6];
@@ -382,6 +426,7 @@ Promise.all([
         }
 
         globalNewCases += parseInt(caseChange, 10);
+        globalN_Y += parseInt(yesterday.Confirmed, 10) - parseInt(twoDaysAgo.Confirmed, 10);
             
         var color = '#ed2d1f';
         if (caseChange <= 20) {
