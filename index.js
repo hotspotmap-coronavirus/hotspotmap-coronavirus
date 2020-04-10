@@ -333,22 +333,22 @@ Promise.all([
         }
 
         var radius = radii[6];
-        if (today.Active <= 25) {
+        if (today.Active <= 100) {
             radius = radii[0];
         }
-        else if (today.Active <= 100) {
+        else if (today.Active <= 500) {
             radius = radii[1];
         }
-        else if (today.Active <= 500) {
+        else if (today.Active <= 1000) {
             radius = radii[2];
         }
-        else if (today.Active <= 1000) {
+        else if (today.Active <= 5000) {
             radius = radii[3];
         }
         else if (today.Active <= 10000) {
             radius = radii[4];
         }
-        else if (today.Active <= 20000) {
+        else if (today.Active <= 30000) {
             radius = radii[5];
         }
 
@@ -480,7 +480,7 @@ Promise.all([
         var zoom2 = radii;
         var zoom3 = [2, 3, 5, 8, 12, 15, 20];
         var zoom4 = [4, 7, 11, 15, 19, 23, 30];
-        var zoom5 = [6, 10, 14, 19, 24, 29, 36];
+        var zoom5 = [6, 10, 14, 19, 23, 27, 34];
 
         // zooming into 3
         if (zoom == 3 && zoom > oldZoom) {
