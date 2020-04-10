@@ -2,7 +2,7 @@
 // NOTE: currently set to update at 12:00 AM UTC
 var d = new Date();
 var currentDay;
-if (d.getUTCDate() < 10) {
+if (d.getUTCDate() - 1 < 10) {
     currentDay = '0' + (d.getUTCDate() - 1);
 }
 else {
