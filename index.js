@@ -218,6 +218,23 @@ Promise.all([
         var today = data[1][i];
         var yesterday = data[0].find(item => item['Country_Region'] === today['Country_Region'] && item['Province_State'] === today['Province_State']);
         var yesterYesterday = data[2].find(item => item['Country_Region'] === today['Country_Region'] && item['Province_State'] === today['Province_State']);
+        
+        // catch new entries
+        if (!yesterday) {
+            console.log(today.Country_Region)
+            yesterday = today;
+            yesterday.Confirmed = 0;
+            yesterday.Recovered = 0;
+            yesterday.Deaths = 0;
+
+            yesterYesterday = yesterday;
+        } else if (!yesterYesterday) {
+            yesterYesterday = yesterday;
+            yesterYesterday.Confirmed = 0;
+            yesterYesterday.Recovered = 0;
+            yesterYesterday.Deaths = 0;
+        }
+
         if (today.Country_Region !== 'US' && today.Country_Region !== 'Canada' && today.Confirmed != 0) {
             plotPoint(today, yesterday, yesterYesterday);
         }
@@ -262,8 +279,6 @@ Promise.all([
         if (data[3][i].City != "Northern Mariana Islands") {
             rec = parseInt(USrecs.find(item => item.State == data[3][i].City).Recovered_Y, 10);
         }
-
-        console.log(rec);
 
         // yesterday's data
         for (let j = 0; j < data[0].length; j++) {
@@ -342,16 +357,18 @@ Promise.all([
     } 
     else {
         document.getElementById('changeDiff').innerHTML = '<i class="arrow up icon"></i>' 
-            + ((globalNewCases - globalN_Y) * -1).toLocaleString() + ' from yesterday';
+            + (globalNewCases - globalN_Y).toLocaleString() + ' from yesterday';
         document.getElementById('changeDiff').style.color = 'orange';
     }
 
     if (globalActive - globalA_Y < 0) {
-        document.getElementById('activeDiff').innerHTML = (globalActive - globalA_Y).toLocaleString() + ' from yesterday';
+        document.getElementById('activeDiff').innerHTML = (globalActive - globalA_Y).toLocaleString()
+             + ' from yesterday (-' + (((globalActive - globalA_Y) / globalA_Y) * 100).toFixed(1) + '%)';
         document.getElementById('activeDiff').style.color = 'cyan';
     } 
     else {
-        document.getElementById('activeDiff').innerHTML = '+' + (globalActive - globalA_Y).toLocaleString() + ' from yesterday';
+        document.getElementById('activeDiff').innerHTML = '+' + (globalActive - globalA_Y).toLocaleString() 
+            + ' from yesterday (+' + (((globalActive - globalA_Y) / globalA_Y) * 100).toFixed(1) + '%)';
         document.getElementById('activeDiff').style.color = 'orange';
     }
 
