@@ -221,18 +221,27 @@ Promise.all([
         
         // catch new entries
         if (!yesterday) {
-            console.log(today.Country_Region)
-            yesterday = today;
-            yesterday.Confirmed = 0;
-            yesterday.Recovered = 0;
-            yesterday.Deaths = 0;
-
+            yesterday = {
+                Province_State: today.Province_State,
+                Country_Region: today.Country_Region,
+                Lat: today.Lat,
+                Long_: today.Long_,
+                Confirmed: 0,
+                Recovered: 0,
+                Deaths: 0
+            }
             yesterYesterday = yesterday;
-        } else if (!yesterYesterday) {
-            yesterYesterday = yesterday;
-            yesterYesterday.Confirmed = 0;
-            yesterYesterday.Recovered = 0;
-            yesterYesterday.Deaths = 0;
+        } 
+        else if (!yesterYesterday) {
+            yesterYesterday = {
+                Province_State: today.Province_State,
+                Country_Region: today.Country_Region,
+                Lat: today.Lat,
+                Long_: today.Long_,
+                Confirmed: 0,
+                Recovered: 0,
+                Deaths: 0
+            }
         }
 
         if (today.Country_Region !== 'US' && today.Country_Region !== 'Canada' && today.Confirmed != 0) {
@@ -348,16 +357,20 @@ Promise.all([
     document.getElementById('deathCount').innerHTML = globalDeaths.toLocaleString();
     document.getElementById('changeCount').innerHTML = globalNewCases.toLocaleString();
 
-    document.getElementById('recoveredDiff').innerHTML = '+' + (globalRecovered - globalR_Y).toLocaleString() + ' from yesterday';
-    document.getElementById('deathDiff').innerHTML = '+' + (globalDeaths - globalD_Y).toLocaleString() + ' from yesterday';
+    document.getElementById('recoveredDiff').innerHTML = '+' + (globalRecovered - globalR_Y).toLocaleString() 
+        + ' from yesterday (+' + (((globalRecovered - globalR_Y) / globalR_Y) * 100).toFixed(1) + '%)';
+    document.getElementById('deathDiff').innerHTML = '+' + (globalDeaths - globalD_Y).toLocaleString()
+        + ' from yesterday (+' + (((globalDeaths - globalD_Y) / globalD_Y) * 100).toFixed(1) + '%)';
     if (globalNewCases - globalN_Y < 0) {
         document.getElementById('changeDiff').innerHTML = '<i class="arrow down icon"></i>' 
-            + ((globalNewCases - globalN_Y) * -1).toLocaleString() + ' from yesterday';
+            + ((globalNewCases - globalN_Y) * -1).toLocaleString() 
+            + ' from yesterday (+' + (((globalNewCases - globalN_Y) / globalN_Y) * 100).toFixed(1) + '%)';
         document.getElementById('changeDiff').style.color = 'cyan';
     } 
     else {
         document.getElementById('changeDiff').innerHTML = '<i class="arrow up icon"></i>' 
-            + (globalNewCases - globalN_Y).toLocaleString() + ' from yesterday';
+            + (globalNewCases - globalN_Y).toLocaleString()
+            + ' from yesterday (+' + (((globalNewCases - globalN_Y) / globalN_Y) * 100).toFixed(1) + '%)';
         document.getElementById('changeDiff').style.color = 'orange';
     }
 
