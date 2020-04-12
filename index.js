@@ -210,16 +210,57 @@ Promise.all([
     var globalD_Y = 0;
     var globalN_Y = 0;
 
+    // total counters for Australia, Canada, China, USA
+    var AustraliaTotals = {
+        Active: 0,
+        Confirmed: 0,
+        Recovered: 0,
+        Deaths: 0,
+        Confirmed_Y: 0,
+        Confirmed_Y2: 0,
+        New: 0
+    }
+
+    var CanadaTotals = {
+        Active: 0,
+        Confirmed: 0,
+        Recovered: 0,
+        Deaths: 0,
+        Confirmed_Y: 0,
+        Confirmed_Y2: 0,
+        New: 0
+    }
+
+    var ChinaTotals = {
+        Active: 0,
+        Confirmed: 0,
+        Recovered: 0,
+        Deaths: 0,
+        Confirmed_Y: 0,
+        Confirmed_Y2: 0,
+        New: 0
+    }
+
+    var USATotals = {
+        Active: 0,
+        Confirmed: 0,
+        Recovered: 0,
+        Deaths: 0,
+        Confirmed_Y: 0,
+        Confirmed_Y2: 0,
+        New: 0
+    }
+
     var markers = [];
     var radii = [1, 2, 3, 5, 7, 10, 13];
 
-    // process data for non-USA regions
+    // process data for all regions EXCEPT Canada & USA
     for (let i = 0; i < data[1].length; i++) {
         var today = data[1][i];
         var yesterday = data[0].find(item => item['Country_Region'] === today['Country_Region'] && item['Province_State'] === today['Province_State']);
-        var yesterYesterday = data[2].find(item => item['Country_Region'] === today['Country_Region'] && item['Province_State'] === today['Province_State']);
+        var twoDaysBack = data[2].find(item => item['Country_Region'] === today['Country_Region'] && item['Province_State'] === today['Province_State']);
         
-        // catch new entries
+        // zero out previous days' data for regions that are new
         if (!yesterday) {
             yesterday = {
                 Province_State: today.Province_State,
@@ -230,10 +271,10 @@ Promise.all([
                 Recovered: 0,
                 Deaths: 0
             }
-            yesterYesterday = yesterday;
+            twoDaysBack = yesterday;
         } 
-        else if (!yesterYesterday) {
-            yesterYesterday = {
+        else if (!twoDaysBack) {
+            twoDaysBack = {
                 Province_State: today.Province_State,
                 Country_Region: today.Country_Region,
                 Lat: today.Lat,
@@ -244,14 +285,35 @@ Promise.all([
             }
         }
 
+        // plot points 
         if (today.Country_Region !== 'US' && today.Country_Region !== 'Canada' && today.Confirmed != 0) {
-            plotPoint(today, yesterday, yesterYesterday);
+            plotPoint(today, yesterday, twoDaysBack);
         }
         else if ((today.Country_Region === 'US' || today.Country_Region === 'Canada') && today.Province_State === 'Recovered') {
             globalRecovered += parseInt(today.Recovered, 10);
             globalR_Y += parseInt(yesterday.Recovered, 10);
         }
+
+        if (today.Country_Region === 'China') {
+            ChinaTotals.Confirmed += parseInt(today.Confirmed, 10);
+            ChinaTotals.Recovered += parseInt(today.Recovered, 10);
+            ChinaTotals.Deaths += parseInt(today.Deaths, 10);
+            ChinaTotals.Confirmed_Y += parseInt(yesterday.Confirmed, 10);
+            ChinaTotals.Confirmed_Y2 += parseInt(twoDaysBack.Confirmed, 10);
+        }
+
+        if (today.Country_Region === 'Australia') {
+            AustraliaTotals.Confirmed += parseInt(today.Confirmed, 10);
+            AustraliaTotals.Recovered += parseInt(today.Recovered, 10);
+            AustraliaTotals.Deaths += parseInt(today.Deaths, 10);
+            AustraliaTotals.Confirmed_Y += parseInt(yesterday.Confirmed, 10);
+            AustraliaTotals.Confirmed_Y2 += parseInt(twoDaysBack.Confirmed, 10);
+        }
     }
+    ChinaTotals.Active = ChinaTotals.Confirmed - ChinaTotals.Recovered - ChinaTotals.Deaths;
+    ChinaTotals.New = ChinaTotals.Confirmed - ChinaTotals.Confirmed_Y;
+    AustraliaTotals.Active = AustraliaTotals.Confirmed - AustraliaTotals.Recovered - AustraliaTotals.Deaths;
+    AustraliaTotals.New = AustraliaTotals.Confirmed - AustraliaTotals.Confirmed_Y;
 
     // process data for USA by state
     for (let i = 0; i < data[3].length; i++) {
@@ -335,7 +397,15 @@ Promise.all([
         if (today.Confirmed != 0) {
             plotPoint(today, yesterday, twoDaysBack);
         }
+
+        USATotals.Confirmed += parseInt(today.Confirmed, 10);
+        USATotals.Recovered += parseInt(today.Recovered, 10);
+        USATotals.Deaths += parseInt(today.Deaths, 10);
+        USATotals.Confirmed_Y += parseInt(yesterday.Confirmed, 10);
+        USATotals.Confirmed_Y2 += parseInt(twoDaysBack.Confirmed, 10);
     }
+    USATotals.Active = USATotals.Confirmed - USATotals.Recovered - USATotals.Deaths;
+    USATotals.New = USATotals.Confirmed - USATotals.Confirmed_Y;
 
     // process data for canadian provinces
     for (let i = 0; i < data[4].length; i++) {
@@ -349,7 +419,15 @@ Promise.all([
         if (today.Confirmed != 0) {
             plotPoint(today, yesterday, twoDaysBack);
         }
+
+        CanadaTotals.Confirmed += parseInt(today.Confirmed, 10);
+        CanadaTotals.Recovered += parseInt(today.Recovered, 10);
+        CanadaTotals.Deaths += parseInt(today.Deaths, 10);
+        CanadaTotals.Confirmed_Y += parseInt(yesterday.Confirmed, 10);
+        CanadaTotals.Confirmed_Y2 += parseInt(twoDaysBack.Confirmed, 10);
     }
+    CanadaTotals.Active = CanadaTotals.Confirmed - CanadaTotals.Recovered - CanadaTotals.Deaths;
+    CanadaTotals.New = CanadaTotals.Confirmed - CanadaTotals.Confirmed_Y;
 
     // Update doc with global numbers
     document.getElementById('activeCount').innerHTML = globalActive.toLocaleString();
@@ -364,7 +442,7 @@ Promise.all([
     if (globalNewCases - globalN_Y < 0) {
         document.getElementById('changeDiff').innerHTML = '<i class="arrow down icon"></i>' 
             + ((globalNewCases - globalN_Y) * -1).toLocaleString() 
-            + ' from yesterday (+' + (((globalNewCases - globalN_Y) / globalN_Y) * 100).toFixed(1) + '%)';
+            + ' from yesterday (' + (((globalNewCases - globalN_Y) / globalN_Y) * 100).toFixed(1) + '%)';
         document.getElementById('changeDiff').style.color = 'cyan';
     } 
     else {
@@ -376,7 +454,7 @@ Promise.all([
 
     if (globalActive - globalA_Y < 0) {
         document.getElementById('activeDiff').innerHTML = (globalActive - globalA_Y).toLocaleString()
-             + ' from yesterday (-' + (((globalActive - globalA_Y) / globalA_Y) * 100).toFixed(1) + '%)';
+             + ' from yesterday (' + (((globalActive - globalA_Y) / globalA_Y) * 100).toFixed(1) + '%)';
         document.getElementById('activeDiff').style.color = 'cyan';
     } 
     else {
@@ -385,6 +463,111 @@ Promise.all([
         document.getElementById('activeDiff').style.color = 'orange';
     }
 
+    // create layer group of all the markers
+    var markerLayer = L.layerGroup(markers);
+
+    L.mapbox.accessToken = 'pk.eyJ1IjoiamtiaXNoYXkiLCJhIjoiY2ptM3N4OGU5MGk5YTNxbW10dms2b2FyYyJ9.IH37mJFcTWUa6O3RH7b4cA';
+    var mapLayer = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/dark-v9/tiles/{z}/{x}/{y}?access_token=' + L.mapbox.accessToken, {
+        attribution: '© <a href="https://www.mapbox.com/feedback/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    });
+
+    // initialize geo map
+    var mymap = L.map('map', {
+        center: [28.1559614,6.6860949],
+        zoom: 2, 
+        minZoom: 2,
+        maxZoom: 7,
+        maxBounds: L.latLngBounds([-90, -240], [90, 240]),
+        maxBoundsViscosity: 0.5,
+        wheelPxPerZoomLevel: 200,
+        layers: [mapLayer, markerLayer]
+    });
+
+    // // Australia marker
+    // L.marker([-25.406062, 133.942153], {
+    //     icon: L.icon({
+    //         iconUrl: 'images/au.png',
+    //         iconSize: [35, 20],
+    //         iconAnchor: [17, 10]
+    //     })
+    // }).bindPopup('<div id="PopupTitle">Australia</div>'
+    // + '<div id="PopupBody">New Cases: ' + 
+    // (AustraliaTotals.New == 0 ? '<strong>0</strong><br>' : '<strong class="caseChange">' + AustraliaTotals.New + '</strong><br>')
+    // + 'Change in Daily Increase: ' + (AustraliaTotals.New - AustraliaTotals.Confirmed_Y - AustraliaTotals.Confirmed_Y2 == 0 ? 
+    //     '<strong>0</strong>' : (AustraliaTotals.New - (AustraliaTotals.Confirmed_Y - AustraliaTotals.Confirmed_Y2) > 0 ? 
+    //         '<strong style="color: orange;"><i class="arrow up icon"></i>' + (AustraliaTotals.New - (AustraliaTotals.Confirmed_Y - AustraliaTotals.Confirmed_Y2)) + '</strong>'
+    //         : '<strong style="color: cyan;"><i class="arrow down icon"></i>' + ((AustraliaTotals.New - (AustraliaTotals.Confirmed_Y - AustraliaTotals.Confirmed_Y2)) * -1) + '</strong>')) 
+    // + '<br><br>'
+    // + 'Active: <strong class="active">' + AustraliaTotals.Active + '</strong><br>'
+    // + 'Recovered: <strong class="recovered">' + AustraliaTotals.Recovered + '</strong><br>' 
+    // + 'Deaths: <strong class="deaths">' + AustraliaTotals.Deaths + '</strong><br>'
+    // + 'Total Cases: <strong>' + AustraliaTotals.Confirmed + '</strong></div>'
+    // ).addTo(mymap);
+
+    // // Canada marker
+    // L.marker([61.638154, -106.516615], {
+    //     icon: L.icon({
+    //         iconUrl: 'images/ca.png',
+    //         iconSize: [35, 20],
+    //         iconAnchor: [17, 10]
+    //     })
+    // }).bindPopup('<div id="PopupTitle">Canada</div>'
+    // + '<div id="PopupBody">New Cases: ' + 
+    // (CanadaTotals.New == 0 ? '<strong>0</strong><br>' : '<strong class="caseChange">' + CanadaTotals.New + '</strong><br>')
+    // + 'Change in Daily Increase: ' + (CanadaTotals.New - CanadaTotals.Confirmed_Y - CanadaTotals.Confirmed_Y2 == 0 ? 
+    //     '<strong>0</strong>' : (CanadaTotals.New - (CanadaTotals.Confirmed_Y - CanadaTotals.Confirmed_Y2) > 0 ? 
+    //         '<strong style="color: orange;"><i class="arrow up icon"></i>' + (CanadaTotals.New - (CanadaTotals.Confirmed_Y - CanadaTotals.Confirmed_Y2)) + '</strong>'
+    //         : '<strong style="color: cyan;"><i class="arrow down icon"></i>' + ((CanadaTotals.New - (CanadaTotals.Confirmed_Y - CanadaTotals.Confirmed_Y2)) * -1) + '</strong>')) 
+    // + '<br><br>'
+    // + 'Active: <strong class="active">' + CanadaTotals.Active + '</strong><br>'
+    // + 'Recovered: <strong class="recovered">' + CanadaTotals.Recovered + '</strong><br>' 
+    // + 'Deaths: <strong class="deaths">' + CanadaTotals.Deaths + '</strong><br>'
+    // + 'Total Cases: <strong>' + CanadaTotals.Confirmed + '</strong></div>'
+    // ).addTo(mymap);
+
+    // // China marker
+    // L.marker([23.990069, 135.514587], {
+    //     icon: L.icon({
+    //         iconUrl: 'images/cn.png',
+    //         iconSize: [35, 20],
+    //         iconAnchor: [17, 10]
+    //     })
+    // }).bindPopup('<div id="PopupTitle">China</div>'
+    // + '<div id="PopupBody">New Cases: ' + 
+    // (ChinaTotals.New == 0 ? '<strong>0</strong><br>' : '<strong class="caseChange">' + ChinaTotals.New + '</strong><br>')
+    // + 'Change in Daily Increase: ' + (ChinaTotals.New - ChinaTotals.Confirmed_Y - ChinaTotals.Confirmed_Y2 == 0 ? 
+    //     '<strong>0</strong>' : (ChinaTotals.New - (ChinaTotals.Confirmed_Y - ChinaTotals.Confirmed_Y2) > 0 ? 
+    //         '<strong style="color: orange;"><i class="arrow up icon"></i>' + (ChinaTotals.New - (ChinaTotals.Confirmed_Y - ChinaTotals.Confirmed_Y2)) + '</strong>'
+    //         : '<strong style="color: cyan;"><i class="arrow down icon"></i>' + ((ChinaTotals.New - (ChinaTotals.Confirmed_Y - ChinaTotals.Confirmed_Y2)) * -1) + '</strong>')) 
+    // + '<br><br>'
+    // + 'Active: <strong class="active">' + ChinaTotals.Active + '</strong><br>'
+    // + 'Recovered: <strong class="recovered">' + ChinaTotals.Recovered + '</strong><br>' 
+    // + 'Deaths: <strong class="deaths">' + ChinaTotals.Deaths + '</strong><br>'
+    // + 'Total Cases: <strong>' + ChinaTotals.Confirmed + '</strong></div>'
+    // ).addTo(mymap);
+
+    // // USA marker
+    // L.marker([35.796809, -135.019634], {
+    //     icon: L.icon({
+    //         iconUrl: 'images/us.png',
+    //         iconSize: [35, 20],
+    //         iconAnchor: [17, 10]
+    //     })
+    // }).bindPopup('<div id="PopupTitle">United States</div>'
+    // + '<div id="PopupBody">New Cases: ' + 
+    // (USATotals.New == 0 ? '<strong>0</strong><br>' : '<strong class="caseChange">' + USATotals.New + '</strong><br>')
+    // + 'Change in Daily Increase: ' + (USATotals.New - USATotals.Confirmed_Y - USATotals.Confirmed_Y2 == 0 ? 
+    //     '<strong>0</strong>' : (USATotals.New - (USATotals.Confirmed_Y - USATotals.Confirmed_Y2) > 0 ? 
+    //         '<strong style="color: orange;"><i class="arrow up icon"></i>' + (USATotals.New - (USATotals.Confirmed_Y - USATotals.Confirmed_Y2)) + '</strong>'
+    //         : '<strong style="color: cyan;"><i class="arrow down icon"></i>' + ((USATotals.New - (USATotals.Confirmed_Y - USATotals.Confirmed_Y2)) * -1) + '</strong>')) 
+    // + '<br><br>'
+    // + 'Active: <strong class="active">' + USATotals.Active + '</strong><br>'
+    // + 'Recovered: <strong class="recovered">' + USATotals.Recovered + '</strong><br>' 
+    // + 'Deaths: <strong class="deaths">' + USATotals.Deaths + '</strong><br>'
+    // + 'Total Cases: <strong>' + USATotals.Confirmed + '</strong></div>'
+    // ).on('click', L.bind(makeChart, null, "US"))
+    // .on('popupclose', L.bind(makeChart, null, "Global"))
+    // .addTo(mymap);
 
     // function to take data and plot onto map
     function plotPoint(today, yesterday, twoDaysAgo) {
@@ -429,14 +612,6 @@ Promise.all([
         var caseChange = parseInt(today.Confirmed, 10);
         if (yesterday) {
             caseChange = parseInt(today.Confirmed, 10) - parseInt(yesterday.Confirmed, 10);
-        }
-
-        var dailyInfo;
-        if (caseChange === 0) {
-            dailyInfo = 'New Cases: <strong>' + caseChange + '</strong><br>';
-        }
-        else {
-            dailyInfo = 'New Cases: <strong class="caseChange">' + caseChange + '</strong><br>';
         }
 
         var rateChange = caseChange;
@@ -486,27 +661,16 @@ Promise.all([
         // else if (caseChange > 200) {
         //     color = '#ed2d1f'
         // }
-        
 
         // popup info
-        if (today['Province_State']) {
-            popup = '<div id="PopupTitle">' + today['Province_State'] + ', ' + today['Country_Region'] + '</div>'
-                    + '<div id="PopupBody">' + dailyInfo
-                    + rateInfo + '<br>'
-                    + 'Active: <strong class="active">' + today.Active + '</strong><br>'
-                    + 'Recovered: <strong class="recovered">' + today.Recovered + '</strong><br>' 
-                    + 'Deaths: <strong class="deaths">' + today.Deaths + '</strong><br>'
-                    + 'Total Cases: <strong>' + today.Confirmed + '</strong></div>';
-        }
-        else {
-            popup = '<div id="PopupTitle">' + today['Country_Region'] + '</div>'
-                    + '<div id="PopupBody">' + dailyInfo
-                    + rateInfo + '<br>'
-                    + 'Active: <strong class="active">' + today.Active + '</strong><br>'
-                    + 'Recovered: <strong class="recovered">' + today.Recovered + '</strong><br>' 
-                    + 'Deaths: <strong class="deaths">' + today.Deaths + '</strong><br>'
-                    + 'Total Cases: <strong>' + today.Confirmed + '</strong></div>';
-        }
+        var popup = '<div id="PopupTitle">' 
+            + (today['Province_State'] ? today['Province_State'] + ', ' : '') + today['Country_Region'] + '</div>'
+            + '<div id="PopupBody">New Cases: ' + (caseChange === 0 ? '<strong>0</strong>' : '<strong class="caseChange">' + caseChange + '</strong><br>')
+            + rateInfo + '<br>'
+            + 'Active: <strong class="active">' + today.Active + '</strong><br>'
+            + 'Recovered: <strong class="recovered">' + today.Recovered + '</strong><br>' 
+            + 'Deaths: <strong class="deaths">' + today.Deaths + '</strong><br>'
+            + 'Total Cases: <strong>' + today.Confirmed + '</strong></div>';
 
         // dont plot garbage locations, but count their data towards totals
         if (today.Province_State !== 'Recovered') {
@@ -521,26 +685,6 @@ Promise.all([
                 .on('popupclose', L.bind(makeChart, null, "Global")));
         }
     }
-
-    // create layer group of all the markers
-    var markerLayer = L.layerGroup(markers);
-
-    L.mapbox.accessToken = 'pk.eyJ1IjoiamtiaXNoYXkiLCJhIjoiY2ptM3N4OGU5MGk5YTNxbW10dms2b2FyYyJ9.IH37mJFcTWUa6O3RH7b4cA';
-    var mapLayer = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/dark-v9/tiles/{z}/{x}/{y}?access_token=' + L.mapbox.accessToken, {
-        attribution: '© <a href="https://www.mapbox.com/feedback/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    });
-
-    // initialize geo map
-    var mymap = L.map('map', {
-        center: [28.1559614,6.6860949],
-        zoom: 2, 
-        minZoom: 2,
-        maxZoom: 7,
-        maxBounds: L.latLngBounds([-90, -240], [90, 240]),
-        maxBoundsViscosity: 0.5,
-        wheelPxPerZoomLevel: 200,
-        layers: [mapLayer, markerLayer]
-    });
 
     // check previous zoom level
     var oldZoom = mymap.getZoom();
@@ -770,7 +914,8 @@ function makeChart(region, province = "") {
         d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv"),
         d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv")
     ];
-    if (region == 'US') {
+    console.log(province);
+    if (region == 'US' && province != "") {
         files = [d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv"),
             "",
             d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv")
@@ -820,6 +965,7 @@ function makeChart(region, province = "") {
         var increase = [];
         var trend = [];
         var exponential = [];
+        
         if (region == "Global") {
             for (let [key, value] of Object.entries(data[0][0])) {
                 if (key != "Province/State" && key != "Country/Region" && key != "Lat" && key != "Long") {
@@ -896,7 +1042,7 @@ function makeChart(region, province = "") {
             }
         }
         // Charts for US states
-        else if (region == "US") {
+        else if (region == "US" && province != "") {
             // get the dates
             for (let [key, value] of Object.entries(data[0][0])) {
                 if (key != "Province_State" && key != "Country_Region" && key != "Lat" && key != "Long_" 
@@ -989,6 +1135,35 @@ function makeChart(region, province = "") {
             dateLabels.splice(0, firstIdx);
             increase.splice(0, firstIdx);
             active.splice(0, firstIdx);
+        }
+        else if (region == "US" && province == "") {
+            // get the dates
+            for (let [key, value] of Object.entries(data[0][0])) {
+                if (key != "Province_State" && key != "Country_Region" && key != "Lat" && key != "Long_" 
+                && key != "Admin2" && key != "UID" && key != "iso2" && key != "iso3" && key != "code3" 
+                && key != "FIPS" && key != "Combined_Key" && key != "Population") {
+                    dateLabels.push(key);
+                }
+            }
+
+            // Confirmed cases
+            for (let i = 0; i < Object.keys(data[0][0]).length - 11; i++) {
+                confs[i] = 0;
+            }
+            data[0].forEach(element => {
+                var i = 0;
+                if (element['Country_Region'] === region) {
+                    for (let [key, value] of Object.entries(element)) {
+                        if (key != "Province_State" && key != "Country_Region" && key != "Lat" && key != "Long_" 
+                        && key != "Admin2" && key != "UID" && key != "iso2" && key != "iso3" && key != "code3" 
+                        && key != "FIPS" && key != "Combined_Key" && key != "Population") {
+                            confs[i] += parseInt(value, 10);
+                            i++;
+                        }
+                    }
+                }
+            });
+            console.log(confs);
         }
         // Charts for all other regions
         else {
