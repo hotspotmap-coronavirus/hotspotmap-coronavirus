@@ -665,7 +665,7 @@ Promise.all([
         // popup info
         var popup = '<div id="PopupTitle">' 
             + (today['Province_State'] ? today['Province_State'] + ', ' : '') + today['Country_Region'] + '</div>'
-            + '<div id="PopupBody">New Cases: ' + (caseChange === 0 ? '<strong>0</strong>' : '<strong class="caseChange">' + caseChange + '</strong><br>')
+            + '<div id="PopupBody">New Cases: ' + (caseChange === 0 ? '<strong>0</strong><br>' : '<strong class="caseChange">' + caseChange + '</strong><br>')
             + rateInfo + '<br>'
             + 'Active: <strong class="active">' + today.Active + '</strong><br>'
             + 'Recovered: <strong class="recovered">' + today.Recovered + '</strong><br>' 
