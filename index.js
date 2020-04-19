@@ -575,11 +575,7 @@ Promise.all([
 
     // function to take data and plot onto map
     function plotPoint(today, yesterday, twoDaysAgo) {
-        // data is weird, double check if Active is truly 0
-        if (!today.Active || today.Active == 0) {
-            today.Active = parseInt(today.Confirmed, 10) - parseInt(today.Recovered, 10) - parseInt(today.Deaths, 10);
-        }
-
+        today.Active = parseInt(today.Confirmed, 10) - parseInt(today.Recovered, 10) - parseInt(today.Deaths, 10);
         yesterday.Active = parseInt(yesterday.Confirmed, 10) - parseInt(yesterday.Recovered, 10) - parseInt(yesterday.Deaths, 10);
 
         globalActive += parseInt(today.Active, 10);
