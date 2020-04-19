@@ -252,7 +252,7 @@ Promise.all([
     }
 
     var markers = [];
-    var radii = [1, 2, 3, 5, 7, 10, 13];
+    var radii = [1, 2, 4, 6, 8, 10, 13];
 
     // process data for all regions EXCEPT Canada & USA
     for (let i = 0; i < data[1].length; i++) {
@@ -594,22 +594,22 @@ Promise.all([
         }
 
         var radius = radii[6];
-        if (today.Active <= 100) {
+        if (today.Active <= 250) {
             radius = radii[0];
         }
-        else if (today.Active <= 500) {
+        else if (today.Active <= 1000) {
             radius = radii[1];
         }
-        else if (today.Active <= 1000) {
+        else if (today.Active <= 5000) {
             radius = radii[2];
         }
-        else if (today.Active <= 5000) {
+        else if (today.Active <= 10000) {
             radius = radii[3];
         }
-        else if (today.Active <= 10000) {
+        else if (today.Active <= 30000) {
             radius = radii[4];
         }
-        else if (today.Active <= 30000) {
+        else if (today.Active <= 70000) {
             radius = radii[5];
         }
 
@@ -701,9 +701,9 @@ Promise.all([
     mymap.on('zoomend', function() {
         var zoom = mymap.getZoom();
         var zoom2 = radii;
-        var zoom3 = [2, 3, 5, 8, 12, 15, 20];
+        var zoom3 = [2, 3, 6, 8, 12, 15, 20];
         var zoom4 = [4, 7, 11, 15, 19, 23, 30];
-        var zoom5 = [6, 10, 14, 19, 23, 27, 34];
+        var zoom5 = [6, 10, 14, 18, 22, 26, 32];
 
         // zooming into 3
         if (zoom == 3 && zoom > oldZoom) {
