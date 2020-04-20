@@ -1,133 +1,29 @@
 // process current and previous date 
 // NOTE: currently set to update at 12:00 AM UTC
-var d = new Date();
-var currentDay;
-if (d.getUTCDate() - 1 < 10) {
-    currentDay = '0' + (d.getUTCDate() - 1);
-}
-else {
-    currentDay = '' + (d.getUTCDate() - 1);
-}
+var currentDate = new Date();
+currentDate.setUTCDate(currentDate.getUTCDate() - 1);
+// try {
+//     d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/" + formatZero(currentDate.getUTCMonth() + 1) + "-" + formatZero(currentDate.getUTCDate()) + "-" + currentDate.getUTCFullYear() + ".csv")
+//     .then(function(data){
+//         // do nothing
+//     });
+// } 
+// catch (err) {
+//     console.log("DIDNT WORK");
+//     currentDate.setUTCDate(currentDate.getUTCDate() - 1);
+// }
+var yest = new Date(currentDate);
+yest.setUTCDate(currentDate.getUTCDate() - 1);
+var yest2 = new Date(currentDate);
+yest2.setUTCDate(currentDate.getUTCDate() - 2);
 
-var currentMonth;
-if (d.getUTCMonth() + 1 < 10) {
-    currentMonth = '0' + (d.getUTCMonth() + 1);
-}
-else {
-    currentMonth = '' + (d.getUTCMonth() + 1);
-}
-var currentYear = d.getUTCFullYear();
-
-// CHECK if at the start of new month
-if (currentDay <= 0) {
-    switch(currentMonth - 1) {
-        case 1:
-        case 3:
-        case 5:
-        case 7:
-        case 8:
-        case 10:
-            currentDay = 31;
-            if (currentMonth - 1 < 10) {
-                currentMonth = '0' + (currentMonth - 1);
-            }
-            else {
-                currentMonth = '' + (currentMonth - 1);
-            }
-            break;
-        case 2:
-            if (currentYear % 4 == 0) {
-                currentDay = 29;
-            }
-            else {
-                currentDay = 28;
-            }
-            currentMonth = '0' + (currentMonth - 1);
-            break;
-        case 4:
-        case 6:
-        case 9:
-        case 11:
-            currentDay = 30;
-            if (currentMonth - 1 < 10) {
-                currentMonth = '0' + (currentMonth - 1);
-            }
-            else {
-                currentMonth = '' + (currentMonth - 1);
-            }
-            break;
-        // THIS IS DECEMBER
-        case 0:
-            currentDay = 31;
-            currentYear--;
-            currentMonth = '12';
-            break;
-    }
+function formatZero(num) {
+    return num > 9 ? "" + num : "0" + num;
 }
 
-function getYesterday(day, month, year) {
-    var previousDay = day - 1;
-    if (previousDay < 10) {
-        previousDay = '0' + previousDay;
-    }
-    var previousMonth = month;
-    var previousYear = year;
-    // if month has changed
-    if (previousDay <= 0) {
-        switch(month - 1) {
-            case 1:
-            case 3:
-            case 5:
-            case 7:
-            case 8:
-            case 10:
-                previousDay = 31;
-                if (month - 1 < 10) {
-                    previousMonth = '0' + (month - 1);
-                }
-                else {
-                    previousMonth = '' + (month - 1);
-                }
-                break;
-            case 2:
-                if (currentYear % 4 == 0) {
-                    previousDay = 29;
-                }
-                else {
-                    previousDay = 28;
-                }
-                previousMonth = '0' + (month - 1);
-                break;
-            case 4:
-            case 6:
-            case 9:
-            case 11:
-                previousDay = 30;
-                if (month - 1 < 10) {
-                    previousMonth = '0' + (month - 1);
-                }
-                else {
-                    previousMonth = '' + (month - 1);
-                }
-                break;
-            // THIS IS DECEMBER
-            case 0:
-                previousDay = 31;
-                previousYear--;
-                previousMonth = '12';
-                break;
-        }
-    }
-
-    return { day: previousDay, month: previousMonth, year: previousYear };
-}
-
-var yest = getYesterday(currentDay, currentMonth, currentYear);
-var yest2 = getYesterday(yest.day, yest.month, yest.year);
-
-console.log(currentMonth + "-" + currentDay + "-" + currentYear);
-console.log(yest.month + "-" + yest.day + "-" + yest.year);
-console.log(yest2.month + "-" + yest2.day + "-" + yest2.year);
+console.log(formatZero(currentDate.getUTCMonth() + 1) + "-" + formatZero(currentDate.getUTCDate()) + "-" + currentDate.getUTCFullYear());
+console.log(formatZero(yest.getUTCMonth() + 1) + "-" + formatZero(yest.getUTCDate()) + "-" + yest.getUTCFullYear());
+console.log(formatZero(yest2.getUTCMonth() + 1) + "-" + formatZero(yest2.getUTCDate()) + "-" + yest2.getUTCFullYear());
 
 // begin compiling data
 Promise.all([d3.csv("./data/statelatlong.csv"), d3.csv("./data/canadaprovinces.csv")])
@@ -193,9 +89,9 @@ Promise.all(filesCanada).then(function (canadaStates) {
 
 // process full data
 Promise.all([
-    d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/" + yest.month + "-" + yest.day + "-" + yest.year + ".csv"),
-    d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/" + currentMonth + "-" + currentDay + "-" + currentYear + ".csv"),
-    d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/" + yest2.month + "-" + yest2.day + "-" + yest2.year + ".csv"),
+    d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/" + formatZero(yest.getUTCMonth() + 1) + "-" + formatZero(yest.getUTCDate()) + "-" + yest.getUTCFullYear() + ".csv"),
+    d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/" + formatZero(currentDate.getUTCMonth() + 1) + "-" + formatZero(currentDate.getUTCDate()) + "-" + currentDate.getUTCFullYear() + ".csv"),
+    d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/" + formatZero(yest2.getUTCMonth() + 1) + "-" + formatZero(yest2.getUTCDate()) + "-" + yest2.getUTCFullYear() + ".csv"),
     d3.csv("./data/statelatlong.csv"),
     d3.csv("./data/canadaprovinces.csv")
 ]).then(function (data) {
@@ -877,6 +773,13 @@ Promise.all([
         }
         mymap.scrollWheelZoom.enable();
     });
+
+    // update info here so it doesn't mess up file reading
+    currentDate.setUTCHours(24);
+    currentDate.setUTCMinutes(0);
+    currentDate.setUTCSeconds(0);
+
+    document.getElementById('lastUpdated').innerHTML = 'Updated at ' + currentDate.toLocaleString() + ' | ';
 })})})}); // <== dont worry about it...
 
 // initialize chart here so it can be destroyed for redraws
@@ -1527,13 +1430,3 @@ function clickChartButton(buttonID) {
     }
     chart.update();
 }
-
-var dat = new Date();
-dat.setUTCDate(currentDay);
-dat.setUTCMonth(d.getUTCMonth());
-dat.setUTCFullYear(currentYear);
-dat.setUTCHours(24);
-dat.setUTCMinutes(0);
-dat.setUTCSeconds(0);
-
-document.getElementById('lastUpdated').innerHTML = 'Updated at ' + dat.toLocaleString() + ' | ';
