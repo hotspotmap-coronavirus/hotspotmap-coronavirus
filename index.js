@@ -1,6 +1,7 @@
 // Global variables
 // map
 var mymap;
+var dateDiff = 0;
 
 // charts
 var canvas = document.getElementById('infectionChart');
@@ -32,29 +33,43 @@ var trajectory = new Chart(ctx2, {
 });
 
 // slider
-// var slider = document.getElementById("dateRange");
-// var startingDate = new Date("2020-01-22"); // Jan 22nd UTC
-// slider.oninput = function() {
-//     console.log(this.value);
-//     // set the current date value
-//     var thisDay = new Date();
-//     thisDay.setUTCDate(thisDay.getUTCDate() - 1);
-//     // change date to slider value
-//     thisDay.setUTCDate(thisDay.getUTCDate() - this.value);
+var slider = document.getElementById("dateRange");
+var startingDate = new Date("2020-03-14"); // March 14th UTC <<<Need to fix files before Mar 14>>>
 
-//     var prevDay = new Date(thisDay);
-//     prevDay.setUTCDate(thisDay.getUTCDate() - 1);
-//     var prevDay2 = new Date(thisDay);
-//     prevDay2.setUTCDate(thisDay.getUTCDate() - 2);
-//     console.log(formatZero(thisDay.getUTCMonth() + 1) + "-" + formatZero(thisDay.getUTCDate()) + "-" + thisDay.getUTCFullYear());
+// update date next to slider 
+slider.oninput = function() {
+    var thisDay = new Date();
+    thisDay.setUTCDate(thisDay.getUTCDate() - 1 - parseInt(this.value, 10));
+    document.getElementById("selectedDate").innerHTML = formatZero(thisDay.getUTCMonth() + 1) + " / " + formatZero(thisDay.getUTCDate()) + " / " + thisDay.getUTCFullYear();
+}
 
-//     // update map to selected date
-//     mymap.remove();
-//     generateMap(thisDay, prevDay, prevDay2);
-// }
+slider.onchange = async function() {
+    var val = parseInt(this.value, 10);
+    // set the current date value
+    var thisDay = new Date();
+    thisDay.setUTCDate(thisDay.getUTCDate() - 1);
+    // change date to slider value
+    thisDay.setUTCDate(thisDay.getUTCDate() - val);
+    dateDiff = val;
+
+    var prevDay = new Date(thisDay);
+    prevDay.setUTCDate(thisDay.getUTCDate() - 1);
+    var prevDay2 = new Date(thisDay);
+    prevDay2.setUTCDate(thisDay.getUTCDate() - 2);
+    console.log(formatZero(thisDay.getUTCMonth() + 1) + "-" + formatZero(thisDay.getUTCDate()) + "-" + thisDay.getUTCFullYear());
+
+    // update map to selected date
+    mymap.remove();
+    slider.disabled = true;
+    await generateMap(thisDay, prevDay, prevDay2);
+    slider.disabled = false;
+}
 
 // initialize the page
 async function initialize() {
+    // do not allow slider to be used before finishing intialization
+    slider.disabled = true;
+
     // process current and previous date 
     // NOTE: currently set to update at 12:00 AM UTC
     var currentDate = new Date();
@@ -70,6 +85,8 @@ async function initialize() {
     }).catch((error) => {
       console.log(error);
       currentDate.setUTCDate(currentDate.getUTCDate() - 1);
+      slider.min = 1;
+      slider.value = 1;
     });
     
     var yest = new Date(currentDate);
@@ -82,13 +99,26 @@ async function initialize() {
     console.log(formatZero(yest2.getUTCMonth() + 1) + "-" + formatZero(yest2.getUTCDate()) + "-" + yest2.getUTCFullYear());
 
     // time slider
-    //slider.max = Math.floor((currentDate.getTime() - startingDate.getTime()) / (1000 * 3600 * 24));
-
-    // map for today
-    generateMap(currentDate, yest, yest2);
+    slider.max = Math.floor((currentDate.getTime() - startingDate.getTime()) / (1000 * 3600 * 24));
 
     // initialize page with global charts
     makeChart("Global", "");
+
+    // map for today
+    await generateMap(currentDate, yest, yest2);
+
+    // update date next to slider 
+    document.getElementById("selectedDate").innerHTML = formatZero(currentDate.getUTCMonth() + 1) + " / " + formatZero(currentDate.getUTCDate()) + " / " + currentDate.getUTCFullYear();
+
+    // update info here so it doesn't mess up file reading
+    currentDate.setUTCHours(24);
+    currentDate.setUTCMinutes(0);
+    currentDate.setUTCSeconds(0);
+
+    document.getElementById('lastUpdated').innerHTML = 'Updated at ' + currentDate.toLocaleString() + ' | ';
+
+    // reactivate slider
+    slider.disabled = false;
 }
 
 /// FUNCTIONS ///
@@ -143,8 +173,8 @@ async function generateMap(currentDate, yest, yest2) {
         for (let i = 0; i < USstates.length; i++) {
             USrecs.push({
                 State: stateOrder[i],
-                Recovered: USstates[i][0].Recovered,
-                Recovered_Y: USstates[i][1].Recovered
+                Recovered: USstates[i][dateDiff].Recovered,
+                Recovered_Y: USstates[i][dateDiff + 1].Recovered
             });
         }
     
@@ -154,8 +184,8 @@ async function generateMap(currentDate, yest, yest2) {
         for (let i = 0; i < canadaStates.length; i++) {
             canadaRecs.push({
                 Province: canadaOrder[i],
-                Recovered: canadaStates[i][0].Recovered,
-                Recovered_Y: canadaStates[i][1].Recovered
+                Recovered: canadaStates[i][dateDiff].Recovered,
+                Recovered_Y: canadaStates[i][dateDiff + 1].Recovered
             });
         }
     
@@ -221,6 +251,34 @@ async function generateMap(currentDate, yest, yest2) {
     
         var markers = [];
         var radii = [1, 2, 4, 6, 8, 10, 13];
+
+        // reformat all the data entries if data headers are mismatched
+        if (!data[1][0].Country_Region) {
+            for (let i = 0; i < data[1].length; i++) {
+               data[1][i].Country_Region = data[1][i]['Country/Region'];
+               data[1][i].Province_State = data[1][i]['Province/State'];
+               data[1][i].Lat = data[1][i].Latitude;
+               data[1][i].Long_ = data[1][i].Longitude;
+            }
+        }
+
+        if (!data[0][0].Country_Region) {
+            for (let i = 0; i < data[0].length; i++) {
+               data[0][i].Country_Region = data[0][i]['Country/Region'];
+               data[0][i].Province_State = data[0][i]['Province/State'];
+               data[0][i].Lat = data[0][i].Latitude;
+               data[0][i].Long_ = data[0][i].Longitude;
+            }
+        }
+
+        if (!data[2][0].Country_Region) {
+            for (let i = 0; i < data[2].length; i++) {
+               data[2][i].Country_Region = data[2][i]['Country/Region'];
+               data[2][i].Province_State = data[2][i]['Province/State'];
+               data[2][i].Lat = data[2][i].Latitude;
+               data[2][i].Long_ = data[2][i].Longitude;
+            }
+        }
     
         // process data for all regions EXCEPT Canada & USA
         for (let i = 0; i < data[1].length; i++) {
@@ -378,21 +436,49 @@ async function generateMap(currentDate, yest, yest2) {
         // process data for canadian provinces
         for (let i = 0; i < data[4].length; i++) {
             var today = data[1].find(item => item.Province_State == data[4][i].Province);
-            today.Recovered = parseInt(canadaRecs.find(item => item.Province == data[4][i].Province).Recovered, 10);
-            var yesterday = data[0].find(item => item.Province_State == data[4][i].Province);
-            yesterday.Recovered = parseInt(canadaRecs.find(item => item.Province == data[4][i].Province).Recovered_Y, 10);
-            var twoDaysBack = data[2].find(item => item.Province_State == data[4][i].Province);
-    
-            // do not plot points if no cases exist
-            if (today.Confirmed != 0) {
-                plotPoint(today, yesterday, twoDaysBack);
+            if (today) {
+                today.Recovered = parseInt(canadaRecs.find(item => item.Province == data[4][i].Province).Recovered, 10);
+                var yesterday = data[0].find(item => item.Province_State == data[4][i].Province);
+                var twoDaysBack = data[2].find(item => item.Province_State == data[4][i].Province);
+
+                // zero out previous days' data for regions that are new
+                if (!yesterday) {
+                    yesterday = {
+                        Province_State: today.Province_State,
+                        Country_Region: today.Country_Region,
+                        Lat: today.Lat,
+                        Long_: today.Long_,
+                        Confirmed: 0,
+                        Recovered: 0,
+                        Deaths: 0
+                    }
+                    twoDaysBack = yesterday;
+                } 
+                else if (!twoDaysBack) {
+                    twoDaysBack = {
+                        Province_State: today.Province_State,
+                        Country_Region: today.Country_Region,
+                        Lat: today.Lat,
+                        Long_: today.Long_,
+                        Confirmed: 0,
+                        Recovered: 0,
+                        Deaths: 0
+                    }
+                }
+
+                yesterday.Recovered = parseInt(canadaRecs.find(item => item.Province == data[4][i].Province).Recovered_Y, 10);
+
+                // do not plot points if no cases exist
+                if (today.Confirmed != 0) {
+                    plotPoint(today, yesterday, twoDaysBack);
+                }
+        
+                CanadaTotals.Confirmed += parseInt(today.Confirmed, 10);
+                CanadaTotals.Recovered += parseInt(today.Recovered, 10);
+                CanadaTotals.Deaths += parseInt(today.Deaths, 10);
+                CanadaTotals.Confirmed_Y += parseInt(yesterday.Confirmed, 10);
+                CanadaTotals.Confirmed_Y2 += parseInt(twoDaysBack.Confirmed, 10);
             }
-    
-            CanadaTotals.Confirmed += parseInt(today.Confirmed, 10);
-            CanadaTotals.Recovered += parseInt(today.Recovered, 10);
-            CanadaTotals.Deaths += parseInt(today.Deaths, 10);
-            CanadaTotals.Confirmed_Y += parseInt(yesterday.Confirmed, 10);
-            CanadaTotals.Confirmed_Y2 += parseInt(twoDaysBack.Confirmed, 10);
         }
         CanadaTotals.Active = CanadaTotals.Confirmed - CanadaTotals.Recovered - CanadaTotals.Deaths;
         CanadaTotals.New = CanadaTotals.Confirmed - CanadaTotals.Confirmed_Y;
@@ -600,7 +686,7 @@ async function generateMap(currentDate, yest, yest2) {
             else {
                 rateInfo = 'Change in Daily Increase: <strong>' + rateChange + '</strong><br>';
             }
-    
+            
             globalNewCases += parseInt(caseChange, 10);
             globalN_Y += parseInt(yesterday.Confirmed, 10) - parseInt(twoDaysAgo.Confirmed, 10);
                 
@@ -848,13 +934,6 @@ async function generateMap(currentDate, yest, yest2) {
             }
             mymap.scrollWheelZoom.enable();
         });
-    
-        // update info here so it doesn't mess up file reading
-        currentDate.setUTCHours(24);
-        currentDate.setUTCMinutes(0);
-        currentDate.setUTCSeconds(0);
-    
-        document.getElementById('lastUpdated').innerHTML = 'Updated at ' + currentDate.toLocaleString() + ' | ';
     })})})}); // <== dont worry about it...
 }
 
@@ -1480,4 +1559,5 @@ function formatZero(num) {
     return num > 9 ? "" + num : "0" + num;
 }
 
+// setup the page
 initialize();
