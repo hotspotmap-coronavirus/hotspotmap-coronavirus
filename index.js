@@ -79,7 +79,7 @@ async function initialize() {
     await fetch("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/" + formatZero(currentDate.getUTCMonth() + 1) + "-" + formatZero(currentDate.getUTCDate()) + "-" + currentDate.getUTCFullYear() + ".csv")
         .then((response) => {
         if (response.status == 404) {
-          throw new Error("Today's file not available, fuck JHU");
+          throw new Error("Today's file not available yet");
         }
         return response;
     }).catch((error) => {
@@ -111,7 +111,8 @@ async function initialize() {
     document.getElementById("selectedDate").innerHTML = formatZero(currentDate.getUTCMonth() + 1) + " / " + formatZero(currentDate.getUTCDate()) + " / " + currentDate.getUTCFullYear();
 
     // update info here so it doesn't mess up file reading
-    currentDate.setUTCHours(24);
+    currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+    currentDate.setUTCHours(4);
     currentDate.setUTCMinutes(0);
     currentDate.setUTCSeconds(0);
 
