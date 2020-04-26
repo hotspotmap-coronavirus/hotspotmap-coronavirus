@@ -426,11 +426,12 @@ async function generateMap(currentDate, yest, yest2) {
             }
     
             USATotals.Confirmed += parseInt(today.Confirmed, 10);
-            USATotals.Recovered += parseInt(today.Recovered, 10);
+            //USATotals.Recovered += parseInt(today.Recovered, 10);
             USATotals.Deaths += parseInt(today.Deaths, 10);
             USATotals.Confirmed_Y += parseInt(yesterday.Confirmed, 10);
             USATotals.Confirmed_Y2 += parseInt(twoDaysBack.Confirmed, 10);
         }
+        USATotals.Recovered = data[1].find(item => item.Country_Region === 'US' && item.Province_State === 'Recovered').Recovered;
         USATotals.Active = USATotals.Confirmed - USATotals.Recovered - USATotals.Deaths;
         USATotals.New = USATotals.Confirmed - USATotals.Confirmed_Y;
     
@@ -949,6 +950,7 @@ function makeChart(region, province = "") {
             "",
             d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv")
         ];
+        var fileName = "";
         switch(province) {
             case "Washington":
                 fileName = "WA";
@@ -995,6 +997,7 @@ function makeChart(region, province = "") {
         var trend = [];
         var exponential = [];
         
+        // Charts for global data
         if (region == "Global") {
             for (let [key, value] of Object.entries(data[0][0])) {
                 if (key != "Province/State" && key != "Country/Region" && key != "Lat" && key != "Long") {
@@ -1239,7 +1242,6 @@ function makeChart(region, province = "") {
                     }
                 });
             }
-            
 
             // create active cases data
             for (let i = 0; i < confs.length; i++) {
@@ -1467,8 +1469,8 @@ function makeChart(region, province = "") {
                     },
                     {
                         label: "Exponential Growth",
-                        backgroundColor: "#a600ff",
-                        borderColor: "#a600ff",
+                        backgroundColor: "white",
+                        borderColor: "white",
                         data: exponential,
                         pointRadius: 1,
                         fill: false,
