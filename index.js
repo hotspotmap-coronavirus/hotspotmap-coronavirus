@@ -43,6 +43,7 @@ slider.oninput = function() {
     document.getElementById("selectedDate").innerHTML = formatZero(thisDay.getUTCMonth() + 1) + " / " + formatZero(thisDay.getUTCDate()) + " / " + thisDay.getUTCFullYear();
 }
 
+// change map according to new date
 slider.onchange = async function() {
     var val = parseInt(this.value, 10);
     // set the current date value
@@ -83,10 +84,10 @@ async function initialize() {
         }
         return response;
     }).catch((error) => {
-      console.log(error);
-      currentDate.setUTCDate(currentDate.getUTCDate() - 1);
-      slider.min = 1;
-      slider.value = 1;
+        console.log(error);
+        currentDate.setUTCDate(currentDate.getUTCDate() - 1);
+        slider.min = 1;
+        slider.value = 1;
     });
     
     var yest = new Date(currentDate);
@@ -215,8 +216,11 @@ async function generateMap(currentDate, yest, yest2) {
             Confirmed: 0,
             Recovered: 0,
             Deaths: 0,
+            Active_Y: 0,
             Confirmed_Y: 0,
             Confirmed_Y2: 0,
+            Recovered_Y: 0,
+            Deaths_Y: 0,
             New: 0
         }
     
@@ -225,8 +229,11 @@ async function generateMap(currentDate, yest, yest2) {
             Confirmed: 0,
             Recovered: 0,
             Deaths: 0,
+            Active_Y: 0,
             Confirmed_Y: 0,
             Confirmed_Y2: 0,
+            Recovered_Y: 0,
+            Deaths_Y: 0,
             New: 0
         }
     
@@ -235,8 +242,11 @@ async function generateMap(currentDate, yest, yest2) {
             Confirmed: 0,
             Recovered: 0,
             Deaths: 0,
+            Active_Y: 0,
             Confirmed_Y: 0,
             Confirmed_Y2: 0,
+            Recovered_Y: 0,
+            Deaths_Y: 0,
             New: 0
         }
     
@@ -245,8 +255,11 @@ async function generateMap(currentDate, yest, yest2) {
             Confirmed: 0,
             Recovered: 0,
             Deaths: 0,
+            Active_Y: 0,
             Confirmed_Y: 0,
             Confirmed_Y2: 0,
+            Recovered_Y: 0,
+            Deaths_Y: 0,
             New: 0
         }
     
@@ -327,6 +340,8 @@ async function generateMap(currentDate, yest, yest2) {
                 ChinaTotals.Deaths += parseInt(today.Deaths, 10);
                 ChinaTotals.Confirmed_Y += parseInt(yesterday.Confirmed, 10);
                 ChinaTotals.Confirmed_Y2 += parseInt(twoDaysBack.Confirmed, 10);
+                ChinaTotals.Recovered_Y += parseInt(yesterday.Recovered, 10);
+                ChinaTotals.Deaths_Y += parseInt(yesterday.Deaths, 10);
             }
     
             if (today.Country_Region === 'Australia') {
@@ -335,13 +350,18 @@ async function generateMap(currentDate, yest, yest2) {
                 AustraliaTotals.Deaths += parseInt(today.Deaths, 10);
                 AustraliaTotals.Confirmed_Y += parseInt(yesterday.Confirmed, 10);
                 AustraliaTotals.Confirmed_Y2 += parseInt(twoDaysBack.Confirmed, 10);
+                AustraliaTotals.Recovered_Y += parseInt(yesterday.Recovered, 10);
+                AustraliaTotals.Deaths_Y += parseInt(yesterday.Deaths, 10);
             }
         }
         ChinaTotals.Active = ChinaTotals.Confirmed - ChinaTotals.Recovered - ChinaTotals.Deaths;
         ChinaTotals.New = ChinaTotals.Confirmed - ChinaTotals.Confirmed_Y;
+        ChinaTotals.Active_Y = ChinaTotals.Confirmed_Y - ChinaTotals.Recovered_Y - ChinaTotals.Deaths_Y;
+
         AustraliaTotals.Active = AustraliaTotals.Confirmed - AustraliaTotals.Recovered - AustraliaTotals.Deaths;
         AustraliaTotals.New = AustraliaTotals.Confirmed - AustraliaTotals.Confirmed_Y;
-    
+        AustraliaTotals.Active_Y = AustraliaTotals.Confirmed_Y - AustraliaTotals.Recovered_Y - AustraliaTotals.Deaths_Y;
+
         // process data for USA by state
         for (let i = 0; i < data[3].length; i++) {
             var conf = 0;
@@ -382,7 +402,6 @@ async function generateMap(currentDate, yest, yest2) {
             for (let j = 0; j < data[0].length; j++) {
                 if (data[0][j].Province_State === data[3][i].City) {
                     conf += parseInt(data[0][j].Confirmed, 10);
-                    //rec += parseInt(data[0][j].Recovered, 10);
                     dead += parseInt(data[0][j].Deaths, 10);
                 }
             }
@@ -405,7 +424,7 @@ async function generateMap(currentDate, yest, yest2) {
             for (let j = 0; j < data[2].length; j++) {
                 if (data[2][j].Province_State === data[3][i].City) {
                     conf += parseInt(data[2][j].Confirmed, 10);
-                    rec += parseInt(data[2][j].Recovered, 10);
+                    //rec += parseInt(data[2][j].Recovered, 10);
                     dead += parseInt(data[2][j].Deaths, 10);
                 }
             }
@@ -430,10 +449,13 @@ async function generateMap(currentDate, yest, yest2) {
             USATotals.Deaths += parseInt(today.Deaths, 10);
             USATotals.Confirmed_Y += parseInt(yesterday.Confirmed, 10);
             USATotals.Confirmed_Y2 += parseInt(twoDaysBack.Confirmed, 10);
+            USATotals.Deaths_Y += parseInt(yesterday.Deaths, 10);
         }
         USATotals.Recovered = data[1].find(item => item.Country_Region === 'US' && item.Province_State === 'Recovered').Recovered;
+        USATotals.Recovered_Y = data[0].find(item => item.Country_Region === 'US' && item.Province_State === 'Recovered').Recovered;
         USATotals.Active = USATotals.Confirmed - USATotals.Recovered - USATotals.Deaths;
         USATotals.New = USATotals.Confirmed - USATotals.Confirmed_Y;
+        USATotals.Active_Y = USATotals.Confirmed_Y - USATotals.Recovered_Y - USATotals.Deaths_Y;
     
         // process data for canadian provinces
         for (let i = 0; i < data[4].length; i++) {
@@ -480,10 +502,13 @@ async function generateMap(currentDate, yest, yest2) {
                 CanadaTotals.Deaths += parseInt(today.Deaths, 10);
                 CanadaTotals.Confirmed_Y += parseInt(yesterday.Confirmed, 10);
                 CanadaTotals.Confirmed_Y2 += parseInt(twoDaysBack.Confirmed, 10);
+                CanadaTotals.Recovered_Y += parseInt(yesterday.Recovered, 10);
+                CanadaTotals.Deaths_Y += parseInt(yesterday.Deaths, 10);
             }
         }
         CanadaTotals.Active = CanadaTotals.Confirmed - CanadaTotals.Recovered - CanadaTotals.Deaths;
         CanadaTotals.New = CanadaTotals.Confirmed - CanadaTotals.Confirmed_Y;
+        CanadaTotals.Active_Y = CanadaTotals.Confirmed_Y - CanadaTotals.Recovered_Y - CanadaTotals.Deaths_Y;
     
         // Update doc with global numbers
         document.getElementById('activeCount').innerHTML = globalActive.toLocaleString();
@@ -499,24 +524,20 @@ async function generateMap(currentDate, yest, yest2) {
             document.getElementById('changeDiff').innerHTML = '<i class="arrow down icon"></i>' 
                 + ((globalNewCases - globalN_Y) * -1).toLocaleString() 
                 + ' from yesterday (' + (((globalNewCases - globalN_Y) / globalN_Y) * 100).toFixed(1) + '%)';
-            document.getElementById('changeDiff').style.color = 'cyan';
         } 
         else {
             document.getElementById('changeDiff').innerHTML = '<i class="arrow up icon"></i>' 
                 + (globalNewCases - globalN_Y).toLocaleString()
                 + ' from yesterday (+' + (((globalNewCases - globalN_Y) / globalN_Y) * 100).toFixed(1) + '%)';
-            document.getElementById('changeDiff').style.color = 'orange';
         }
     
         if (globalActive - globalA_Y < 0) {
             document.getElementById('activeDiff').innerHTML = (globalActive - globalA_Y).toLocaleString()
                  + ' from yesterday (' + (((globalActive - globalA_Y) / globalA_Y) * 100).toFixed(1) + '%)';
-            document.getElementById('activeDiff').style.color = 'cyan';
         } 
         else {
             document.getElementById('activeDiff').innerHTML = '+' + (globalActive - globalA_Y).toLocaleString() 
                 + ' from yesterday (+' + (((globalActive - globalA_Y) / globalA_Y) * 100).toFixed(1) + '%)';
-            document.getElementById('activeDiff').style.color = 'orange';
         }
     
         // create layer group of all the markers
@@ -543,9 +564,12 @@ async function generateMap(currentDate, yest, yest2) {
                     '<strong style="color: orange;"><i class="arrow up icon"></i>' + (AustraliaTotals.New - (AustraliaTotals.Confirmed_Y - AustraliaTotals.Confirmed_Y2)) + '</strong>'
                     : '<strong style="color: cyan;"><i class="arrow down icon"></i>' + ((AustraliaTotals.New - (AustraliaTotals.Confirmed_Y - AustraliaTotals.Confirmed_Y2)) * -1) + '</strong>')) 
             + '<br><br>'
-            + 'Active: <strong class="active">' + AustraliaTotals.Active + '</strong><br>'
-            + 'Recovered: <strong class="recovered">' + AustraliaTotals.Recovered + '</strong><br>' 
-            + 'Deaths: <strong class="deaths">' + AustraliaTotals.Deaths + '</strong><br>'
+            + 'Active: <strong class="active">' + AustraliaTotals.Active 
+                + (AustraliaTotals.Active - AustraliaTotals.Active_Y >= 0 ? '&emsp;(+' : '&emsp;(') + (AustraliaTotals.Active - AustraliaTotals.Active_Y) + ')</strong><br>'
+            + 'Recovered: <strong class="recovered">' + AustraliaTotals.Recovered 
+                + '&emsp;(+' + (AustraliaTotals.Recovered - AustraliaTotals.Recovered_Y) + ')</strong><br>' 
+            + 'Deaths: <strong class="deaths">' + AustraliaTotals.Deaths
+                + '&emsp;(+' + (AustraliaTotals.Deaths - AustraliaTotals.Deaths_Y) + ')</strong><br>'
             + 'Total Cases: <strong>' + AustraliaTotals.Confirmed + '</strong></div>'
             ).on('click', L.bind(makeChart, null, "Australia", ""))
             .on('popupclose', L.bind(makeChart, null, "Global", "")),
@@ -565,9 +589,12 @@ async function generateMap(currentDate, yest, yest2) {
                     '<strong style="color: orange;"><i class="arrow up icon"></i>' + (CanadaTotals.New - (CanadaTotals.Confirmed_Y - CanadaTotals.Confirmed_Y2)) + '</strong>'
                     : '<strong style="color: cyan;"><i class="arrow down icon"></i>' + ((CanadaTotals.New - (CanadaTotals.Confirmed_Y - CanadaTotals.Confirmed_Y2)) * -1) + '</strong>')) 
             + '<br><br>'
-            + 'Active: <strong class="active">' + CanadaTotals.Active + '</strong><br>'
-            + 'Recovered: <strong class="recovered">' + CanadaTotals.Recovered + '</strong><br>' 
-            + 'Deaths: <strong class="deaths">' + CanadaTotals.Deaths + '</strong><br>'
+            + 'Active: <strong class="active">' + CanadaTotals.Active 
+            + (CanadaTotals.Active - CanadaTotals.Active_Y >= 0 ? '&emsp;(+' : '&emsp;(') + (CanadaTotals.Active - CanadaTotals.Active_Y) + ')</strong><br>'
+            + 'Recovered: <strong class="recovered">' + CanadaTotals.Recovered 
+                + '&emsp;(+' + (CanadaTotals.Recovered - CanadaTotals.Recovered_Y) + ')</strong><br>' 
+            + 'Deaths: <strong class="deaths">' + CanadaTotals.Deaths
+                + '&emsp;(+' + (CanadaTotals.Deaths - CanadaTotals.Deaths_Y) + ')</strong><br>'
             + 'Total Cases: <strong>' + CanadaTotals.Confirmed + '</strong></div>'
             ).on('click', L.bind(makeChart, null, "Canada", ""))
             .on('popupclose', L.bind(makeChart, null, "Global", "")),
@@ -587,9 +614,12 @@ async function generateMap(currentDate, yest, yest2) {
                     '<strong style="color: orange;"><i class="arrow up icon"></i>' + (ChinaTotals.New - (ChinaTotals.Confirmed_Y - ChinaTotals.Confirmed_Y2)) + '</strong>'
                     : '<strong style="color: cyan;"><i class="arrow down icon"></i>' + ((ChinaTotals.New - (ChinaTotals.Confirmed_Y - ChinaTotals.Confirmed_Y2)) * -1) + '</strong>')) 
             + '<br><br>'
-            + 'Active: <strong class="active">' + ChinaTotals.Active + '</strong><br>'
-            + 'Recovered: <strong class="recovered">' + ChinaTotals.Recovered + '</strong><br>' 
-            + 'Deaths: <strong class="deaths">' + ChinaTotals.Deaths + '</strong><br>'
+            + 'Active: <strong class="active">' + ChinaTotals.Active 
+            + (ChinaTotals.Active - ChinaTotals.Active_Y >= 0 ? '&emsp;(+' : '&emsp;(') + (ChinaTotals.Active - ChinaTotals.Active_Y) + ')</strong><br>'
+            + 'Recovered: <strong class="recovered">' + ChinaTotals.Recovered 
+                + '&emsp;(+' + (ChinaTotals.Recovered - ChinaTotals.Recovered_Y) + ')</strong><br>' 
+            + 'Deaths: <strong class="deaths">' + ChinaTotals.Deaths
+                + '&emsp;(+' + (ChinaTotals.Deaths - ChinaTotals.Deaths_Y) + ')</strong><br>'
             + 'Total Cases: <strong>' + ChinaTotals.Confirmed + '</strong></div>'
             ).on('click', L.bind(makeChart, null, "China", ""))
             .on('popupclose', L.bind(makeChart, null, "Global", "")),
@@ -609,9 +639,12 @@ async function generateMap(currentDate, yest, yest2) {
                     '<strong style="color: orange;"><i class="arrow up icon"></i>' + (USATotals.New - (USATotals.Confirmed_Y - USATotals.Confirmed_Y2)) + '</strong>'
                     : '<strong style="color: cyan;"><i class="arrow down icon"></i>' + ((USATotals.New - (USATotals.Confirmed_Y - USATotals.Confirmed_Y2)) * -1) + '</strong>')) 
             + '<br><br>'
-            + 'Active: <strong class="active">' + USATotals.Active + '</strong><br>'
-            + 'Recovered: <strong class="recovered">' + USATotals.Recovered + '</strong><br>' 
-            + 'Deaths: <strong class="deaths">' + USATotals.Deaths + '</strong><br>'
+            + 'Active: <strong class="active">' + USATotals.Active 
+            + (USATotals.Active - USATotals.Active_Y >= 0 ? '&emsp;(+' : '&emsp;(') + (USATotals.Active - USATotals.Active_Y) + ')</strong><br>'
+            + 'Recovered: <strong class="recovered">' + USATotals.Recovered 
+                + '&emsp;(+' + (USATotals.Recovered - USATotals.Recovered_Y) + ')</strong><br>' 
+            + 'Deaths: <strong class="deaths">' + USATotals.Deaths
+                + '&emsp;(+' + (USATotals.Deaths - USATotals.Deaths_Y) + ')</strong><br>'
             + 'Total Cases: <strong>' + USATotals.Confirmed + '</strong></div>'
             ).on('click', L.bind(makeChart, null, "US", ""))
             .on('popupclose', L.bind(makeChart, null, "Global", ""))
@@ -726,9 +759,12 @@ async function generateMap(currentDate, yest, yest2) {
                 + (today['Province_State'] ? today['Province_State'] + ', ' : '') + today['Country_Region'] + '</div>'
                 + '<div id="PopupBody">New Cases: ' + (caseChange === 0 ? '<strong>0</strong><br>' : '<strong class="caseChange">' + caseChange + '</strong><br>')
                 + rateInfo + '<br>'
-                + 'Active: <strong class="active">' + today.Active + '</strong><br>'
-                + 'Recovered: <strong class="recovered">' + today.Recovered + '</strong><br>' 
-                + 'Deaths: <strong class="deaths">' + today.Deaths + '</strong><br>'
+                + 'Active: <strong class="active">' + today.Active 
+                + (today.Active - yesterday.Active >= 0 ? '&emsp;(+' : '&emsp;(') + (today.Active - yesterday.Active) + ')</strong><br>'
+                + 'Recovered: <strong class="recovered">' + today.Recovered 
+                    + '&emsp;(+' + (today.Recovered - yesterday.Recovered) + ')</strong><br>' 
+                + 'Deaths: <strong class="deaths">' + today.Deaths
+                    + '&emsp;(+' + (today.Deaths - yesterday.Deaths) + ')</strong><br>'
                 + 'Total Cases: <strong>' + today.Confirmed + '</strong></div>';
     
             // dont plot garbage locations, but count their data towards totals
