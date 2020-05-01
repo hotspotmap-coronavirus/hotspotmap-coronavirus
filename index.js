@@ -34,7 +34,7 @@ var trajectory = new Chart(ctx2, {
 
 // slider
 var slider = document.getElementById("dateRange");
-var startingDate = new Date("2020-03-14"); // March 14th UTC <<<Need to fix files before Mar 14>>>
+var startingDate = new Date("2020-01-24"); // Jan 24th UTC 
 
 // update date next to slider 
 slider.oninput = function() {
@@ -304,7 +304,9 @@ async function generateMap(currentDate, yest, yest2) {
                 }
 
                 //TODO: need to make a catch for when selected date is the beginning of the dataset
-                plotPoint(today, yesterday, twoDaysBack);
+                if (today.Confirmed > 0) {
+                    plotPoint(today, yesterday, twoDaysBack);
+                }
 
                 // get totals for China
                 if (today.Country_Region === 'China') {
@@ -363,7 +365,9 @@ async function generateMap(currentDate, yest, yest2) {
                     Deaths: dead[(yest2.getUTCMonth() + 1) + "/" + yest2.getUTCDate() + "/" + (yest2.getUTCFullYear() - 2000)]
                 }
 
-                plotPoint(today, yesterday, twoDaysBack);
+                if (today.Confirmed > 0) {
+                    plotPoint(today, yesterday, twoDaysBack);
+                }
 
                 CanadaTotals.Confirmed += parseInt(today.Confirmed, 10);
                 CanadaTotals.Deaths += parseInt(today.Deaths, 10);
@@ -469,7 +473,9 @@ async function generateMap(currentDate, yest, yest2) {
                 Deaths: dead
             }
 
-            plotPoint(today, yesterday, twoDaysBack);
+            if (today.Confirmed > 0) {
+                plotPoint(today, yesterday, twoDaysBack);
+            }
         }
 
         // add USA and Canda recoveries to global counters
