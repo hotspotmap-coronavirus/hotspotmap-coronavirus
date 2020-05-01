@@ -197,15 +197,20 @@ async function generateMap(currentDate, yest, yest2) {
         d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/" + formatZero(currentDate.getUTCMonth() + 1) + "-" + formatZero(currentDate.getUTCDate()) + "-" + currentDate.getUTCFullYear() + ".csv"),
         d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/" + formatZero(yest2.getUTCMonth() + 1) + "-" + formatZero(yest2.getUTCDate()) + "-" + yest2.getUTCFullYear() + ".csv"),
         d3.csv("./data/statelatlong.csv"),
-        d3.csv("./data/canadaprovinces.csv")
+        d3.csv("./data/canadaprovinces.csv"),
+        d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"),
+        d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv"),
+        d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv")
     ]).then(async function (data) {
         // global totals counters
         var globalActive = 0;
+        var globalConfirmed = 0;
         var globalRecovered = 0;
         var globalDeaths = 0;
         var globalNewCases = 0;
     
         var globalA_Y = 0;
+        var globalC_Y = 0;
         var globalR_Y = 0;
         var globalD_Y = 0;
         var globalN_Y = 0;
@@ -295,65 +300,131 @@ async function generateMap(currentDate, yest, yest2) {
         }
     
         // process data for all regions EXCEPT Canada & USA
-        for (let i = 0; i < data[1].length; i++) {
-            var today = data[1][i];
-            var yesterday = data[0].find(item => item['Country_Region'] === today['Country_Region'] && item['Province_State'] === today['Province_State']);
-            var twoDaysBack = data[2].find(item => item['Country_Region'] === today['Country_Region'] && item['Province_State'] === today['Province_State']);
-            
-            // zero out previous days' data for regions that are new
-            if (!yesterday) {
-                yesterday = {
-                    Province_State: today.Province_State,
-                    Country_Region: today.Country_Region,
-                    Lat: today.Lat,
-                    Long_: today.Long_,
-                    Confirmed: 0,
-                    Recovered: 0,
-                    Deaths: 0
+        for (let i = 0; i < data[5].length; i++) {
+            if (data[5][i]['Country/Region'] != 'US' && data[5][i]['Country/Region'] != 'Canada') {
+                var confs = data[5][i];
+                var recs = data[6].find(item => item['Country/Region'] === confs['Country/Region'] && item['Province/State'] === confs['Province/State']);
+                var dead = data[7].find(item => item['Country/Region'] === confs['Country/Region'] && item['Province/State'] === confs['Province/State']);
+                var today = {
+                    Province_State: data[5][i]['Province/State'],
+                    Country_Region: data[5][i]['Country/Region'],
+                    Lat: data[5][i].Lat,
+                    Long_: data[5][i].Long,
+                    Confirmed: confs[(currentDate.getUTCMonth() + 1) + "/" + currentDate.getUTCDate() + "/" + (currentDate.getUTCFullYear() - 2000)],
+                    Recovered: recs[(currentDate.getUTCMonth() + 1) + "/" + currentDate.getUTCDate() + "/" + (currentDate.getUTCFullYear() - 2000)],
+                    Deaths: dead[(currentDate.getUTCMonth() + 1) + "/" + currentDate.getUTCDate() + "/" + (currentDate.getUTCFullYear() - 2000)]
                 }
-                twoDaysBack = yesterday;
-            } 
-            else if (!twoDaysBack) {
-                twoDaysBack = {
-                    Province_State: today.Province_State,
-                    Country_Region: today.Country_Region,
-                    Lat: today.Lat,
-                    Long_: today.Long_,
-                    Confirmed: 0,
-                    Recovered: 0,
-                    Deaths: 0
+                
+                var yesterday = {
+                    Province_State: data[5][i]['Province/State'],
+                    Country_Region: data[5][i]['Country/Region'],
+                    Lat: data[5][i].Lat,
+                    Long_: data[5][i].Long,
+                    Confirmed: confs[(yest.getUTCMonth() + 1) + "/" + yest.getUTCDate() + "/" + (yest.getUTCFullYear() - 2000)],
+                    Recovered: recs[(yest.getUTCMonth() + 1) + "/" + yest.getUTCDate() + "/" + (yest.getUTCFullYear() - 2000)],
+                    Deaths: dead[(yest.getUTCMonth() + 1) + "/" + yest.getUTCDate() + "/" + (yest.getUTCFullYear() - 2000)]
                 }
-            }
-    
-            // plot points 
-            if (today.Country_Region !== 'US' && today.Country_Region !== 'Canada' && today.Confirmed != 0) {
+
+                var twoDaysBack = {
+                    Province_State: data[5][i]['Province/State'],
+                    Country_Region: data[5][i]['Country/Region'],
+                    Lat: data[5][i].Lat,
+                    Long_: data[5][i].Long,
+                    Confirmed: confs[(yest2.getUTCMonth() + 1) + "/" + yest2.getUTCDate() + "/" + (yest2.getUTCFullYear() - 2000)],
+                    Recovered: recs[(yest2.getUTCMonth() + 1) + "/" + yest2.getUTCDate() + "/" + (yest2.getUTCFullYear() - 2000)],
+                    Deaths: dead[(yest2.getUTCMonth() + 1) + "/" + yest2.getUTCDate() + "/" + (yest2.getUTCFullYear() - 2000)]
+                }
+
+                //TODO: need to make a catch for when selected date is the beginning of the dataset
                 plotPoint(today, yesterday, twoDaysBack);
+
+                // get totals for China
+                if (today.Country_Region === 'China') {
+                    ChinaTotals.Confirmed += parseInt(today.Confirmed, 10);
+                    ChinaTotals.Recovered += parseInt(today.Recovered, 10);
+                    ChinaTotals.Deaths += parseInt(today.Deaths, 10);
+                    ChinaTotals.Confirmed_Y += parseInt(yesterday.Confirmed, 10);
+                    ChinaTotals.Confirmed_Y2 += parseInt(twoDaysBack.Confirmed, 10);
+                    ChinaTotals.Recovered_Y += parseInt(yesterday.Recovered, 10);
+                    ChinaTotals.Deaths_Y += parseInt(yesterday.Deaths, 10);
+                }
+        
+                // get totals for Australia
+                if (today.Country_Region === 'Australia') {
+                    AustraliaTotals.Confirmed += parseInt(today.Confirmed, 10);
+                    AustraliaTotals.Recovered += parseInt(today.Recovered, 10);
+                    AustraliaTotals.Deaths += parseInt(today.Deaths, 10);
+                    AustraliaTotals.Confirmed_Y += parseInt(yesterday.Confirmed, 10);
+                    AustraliaTotals.Confirmed_Y2 += parseInt(twoDaysBack.Confirmed, 10);
+                    AustraliaTotals.Recovered_Y += parseInt(yesterday.Recovered, 10);
+                    AustraliaTotals.Deaths_Y += parseInt(yesterday.Deaths, 10);
+                }
+            } 
+            else if (data[5][i]['Country/Region'] == 'Canada' && data[5][i]['Province/State'] != 'Grand Princess'
+                        && data[5][i]['Province/State'] != 'Diamond Princess' 
+                        && data[5][i]['Province/State'] != 'Recovered') {
+                var confs = data[5][i];
+                var dead = data[7].find(item => item['Country/Region'] === confs['Country/Region'] && item['Province/State'] === confs['Province/State']);
+                var today = {
+                    Province_State: data[5][i]['Province/State'],
+                    Country_Region: data[5][i]['Country/Region'],
+                    Lat: data[5][i].Lat,
+                    Long_: data[5][i].Long,
+                    Confirmed: confs[(currentDate.getUTCMonth() + 1) + "/" + currentDate.getUTCDate() + "/" + (currentDate.getUTCFullYear() - 2000)],
+                    Recovered: parseInt(canadaRecs.find(item => item.Province == data[5][i]['Province/State']).Recovered, 10),
+                    Deaths: dead[(currentDate.getUTCMonth() + 1) + "/" + currentDate.getUTCDate() + "/" + (currentDate.getUTCFullYear() - 2000)]
+                }
+                
+                var yesterday = {
+                    Province_State: data[5][i]['Province/State'],
+                    Country_Region: data[5][i]['Country/Region'],
+                    Lat: data[5][i].Lat,
+                    Long_: data[5][i].Long,
+                    Confirmed: confs[(yest.getUTCMonth() + 1) + "/" + yest.getUTCDate() + "/" + (yest.getUTCFullYear() - 2000)],
+                    Recovered: parseInt(canadaRecs.find(item => item.Province == data[5][i]['Province/State']).Recovered_Y, 10),
+                    Deaths: dead[(yest.getUTCMonth() + 1) + "/" + yest.getUTCDate() + "/" + (yest.getUTCFullYear() - 2000)]
+                }
+
+                var twoDaysBack = {
+                    Province_State: data[5][i]['Province/State'],
+                    Country_Region: data[5][i]['Country/Region'],
+                    Lat: data[5][i].Lat,
+                    Long_: data[5][i].Long,
+                    Confirmed: confs[(yest2.getUTCMonth() + 1) + "/" + yest2.getUTCDate() + "/" + (yest2.getUTCFullYear() - 2000)],
+                    Recovered: 0,
+                    Deaths: dead[(yest2.getUTCMonth() + 1) + "/" + yest2.getUTCDate() + "/" + (yest2.getUTCFullYear() - 2000)]
+                }
+
+                plotPoint(today, yesterday, twoDaysBack);
+
+                CanadaTotals.Confirmed += parseInt(today.Confirmed, 10);
+                CanadaTotals.Deaths += parseInt(today.Deaths, 10);
+                CanadaTotals.Confirmed_Y += parseInt(yesterday.Confirmed, 10);
+                CanadaTotals.Confirmed_Y2 += parseInt(twoDaysBack.Confirmed, 10);
+                CanadaTotals.Deaths_Y += parseInt(yesterday.Deaths, 10);
             }
-            else if ((today.Country_Region === 'US' || today.Country_Region === 'Canada') && today.Province_State === 'Recovered') {
-                globalRecovered += parseInt(today.Recovered, 10);
-                globalR_Y += parseInt(yesterday.Recovered, 10);
-            }
-    
-            if (today.Country_Region === 'China') {
-                ChinaTotals.Confirmed += parseInt(today.Confirmed, 10);
-                ChinaTotals.Recovered += parseInt(today.Recovered, 10);
-                ChinaTotals.Deaths += parseInt(today.Deaths, 10);
-                ChinaTotals.Confirmed_Y += parseInt(yesterday.Confirmed, 10);
-                ChinaTotals.Confirmed_Y2 += parseInt(twoDaysBack.Confirmed, 10);
-                ChinaTotals.Recovered_Y += parseInt(yesterday.Recovered, 10);
-                ChinaTotals.Deaths_Y += parseInt(yesterday.Deaths, 10);
-            }
-    
-            if (today.Country_Region === 'Australia') {
-                AustraliaTotals.Confirmed += parseInt(today.Confirmed, 10);
-                AustraliaTotals.Recovered += parseInt(today.Recovered, 10);
-                AustraliaTotals.Deaths += parseInt(today.Deaths, 10);
-                AustraliaTotals.Confirmed_Y += parseInt(yesterday.Confirmed, 10);
-                AustraliaTotals.Confirmed_Y2 += parseInt(twoDaysBack.Confirmed, 10);
-                AustraliaTotals.Recovered_Y += parseInt(yesterday.Recovered, 10);
-                AustraliaTotals.Deaths_Y += parseInt(yesterday.Deaths, 10);
+            else if (data[5][i]['Country/Region'] == 'US') {
+                var confs = data[5][i];
+                var recs = data[6].find(item => item['Country/Region'] === confs['Country/Region'] && item['Province/State'] === confs['Province/State']);
+                var dead = data[7].find(item => item['Country/Region'] === confs['Country/Region'] && item['Province/State'] === confs['Province/State']);
+                USATotals.Confirmed = parseInt(confs[(currentDate.getUTCMonth() + 1) + "/" + currentDate.getUTCDate() + "/" + (currentDate.getUTCFullYear() - 2000)], 10);
+                USATotals.Recovered = parseInt(recs[(currentDate.getUTCMonth() + 1) + "/" + currentDate.getUTCDate() + "/" + (currentDate.getUTCFullYear() - 2000)], 10);
+                USATotals.Deaths = parseInt(dead[(currentDate.getUTCMonth() + 1) + "/" + currentDate.getUTCDate() + "/" + (currentDate.getUTCFullYear() - 2000)], 10);
+                USATotals.Confirmed_Y = parseInt(confs[(yest.getUTCMonth() + 1) + "/" + yest.getUTCDate() + "/" + (yest.getUTCFullYear() - 2000)], 10);
+                USATotals.Confirmed_Y2 = parseInt(confs[(yest2.getUTCMonth() + 1) + "/" + yest2.getUTCDate() + "/" + (yest2.getUTCFullYear() - 2000)], 10);
+                USATotals.Recovered_Y = parseInt(recs[(yest.getUTCMonth() + 1) + "/" + yest.getUTCDate() + "/" + (yest.getUTCFullYear() - 2000)], 10);
+                USATotals.Deaths_Y = parseInt(dead[(yest.getUTCMonth() + 1) + "/" + yest.getUTCDate() + "/" + (yest.getUTCFullYear() - 2000)], 10);
+                USATotals.Active = USATotals.Confirmed - USATotals.Recovered - USATotals.Deaths;
+                USATotals.Active_Y = USATotals.Confirmed_Y - USATotals.Recovered_Y - USATotals.Deaths_Y;
+                USATotals.New = USATotals.Confirmed - USATotals.Confirmed_Y;
             }
         }
+        CanadaTotals.Recovered = parseInt(data[6].find(item => item['Country/Region'] === 'Canada' && item['Province/State'] === '')[(currentDate.getUTCMonth() + 1) + "/" + currentDate.getUTCDate() + "/" + (currentDate.getUTCFullYear() - 2000)], 10);
+        CanadaTotals.Recovered_Y = parseInt(data[6].find(item => item['Country/Region'] === 'Canada' && item['Province/State'] === '')[(yest.getUTCMonth() + 1) + "/" + yest.getUTCDate() + "/" + (yest.getUTCFullYear() - 2000)], 10);
+        CanadaTotals.Active = CanadaTotals.Confirmed - CanadaTotals.Recovered - CanadaTotals.Deaths;
+        CanadaTotals.New = CanadaTotals.Confirmed - CanadaTotals.Confirmed_Y;
+        CanadaTotals.Active_Y = CanadaTotals.Confirmed_Y - CanadaTotals.Recovered_Y - CanadaTotals.Deaths_Y;
+
         ChinaTotals.Active = ChinaTotals.Confirmed - ChinaTotals.Recovered - ChinaTotals.Deaths;
         ChinaTotals.New = ChinaTotals.Confirmed - ChinaTotals.Confirmed_Y;
         ChinaTotals.Active_Y = ChinaTotals.Confirmed_Y - ChinaTotals.Recovered_Y - ChinaTotals.Deaths_Y;
@@ -361,6 +432,10 @@ async function generateMap(currentDate, yest, yest2) {
         AustraliaTotals.Active = AustraliaTotals.Confirmed - AustraliaTotals.Recovered - AustraliaTotals.Deaths;
         AustraliaTotals.New = AustraliaTotals.Confirmed - AustraliaTotals.Confirmed_Y;
         AustraliaTotals.Active_Y = AustraliaTotals.Confirmed_Y - AustraliaTotals.Recovered_Y - AustraliaTotals.Deaths_Y;
+        
+        // add USA and Canda recoveries to global counters
+        globalRecovered += parseInt(USATotals.Recovered, 10) + parseInt(CanadaTotals.Recovered, 10);
+        globalR_Y += parseInt(USATotals.Recovered_Y, 10) + parseInt(CanadaTotals.Recovered_Y, 10);
 
         // process data for USA by state
         for (let i = 0; i < data[3].length; i++) {
@@ -443,74 +518,11 @@ async function generateMap(currentDate, yest, yest2) {
             if (today.Confirmed != 0) {
                 plotPoint(today, yesterday, twoDaysBack);
             }
-    
-            USATotals.Confirmed += parseInt(today.Confirmed, 10);
-            //USATotals.Recovered += parseInt(today.Recovered, 10);
-            USATotals.Deaths += parseInt(today.Deaths, 10);
-            USATotals.Confirmed_Y += parseInt(yesterday.Confirmed, 10);
-            USATotals.Confirmed_Y2 += parseInt(twoDaysBack.Confirmed, 10);
-            USATotals.Deaths_Y += parseInt(yesterday.Deaths, 10);
         }
-        USATotals.Recovered = data[1].find(item => item.Country_Region === 'US' && item.Province_State === 'Recovered').Recovered;
-        USATotals.Recovered_Y = data[0].find(item => item.Country_Region === 'US' && item.Province_State === 'Recovered').Recovered;
-        USATotals.Active = USATotals.Confirmed - USATotals.Recovered - USATotals.Deaths;
-        USATotals.New = USATotals.Confirmed - USATotals.Confirmed_Y;
-        USATotals.Active_Y = USATotals.Confirmed_Y - USATotals.Recovered_Y - USATotals.Deaths_Y;
-    
-        // process data for canadian provinces
-        for (let i = 0; i < data[4].length; i++) {
-            var today = data[1].find(item => item.Province_State == data[4][i].Province);
-            if (today) {
-                today.Recovered = parseInt(canadaRecs.find(item => item.Province == data[4][i].Province).Recovered, 10);
-                var yesterday = data[0].find(item => item.Province_State == data[4][i].Province);
-                var twoDaysBack = data[2].find(item => item.Province_State == data[4][i].Province);
-
-                // zero out previous days' data for regions that are new
-                if (!yesterday) {
-                    yesterday = {
-                        Province_State: today.Province_State,
-                        Country_Region: today.Country_Region,
-                        Lat: today.Lat,
-                        Long_: today.Long_,
-                        Confirmed: 0,
-                        Recovered: 0,
-                        Deaths: 0
-                    }
-                    twoDaysBack = yesterday;
-                } 
-                else if (!twoDaysBack) {
-                    twoDaysBack = {
-                        Province_State: today.Province_State,
-                        Country_Region: today.Country_Region,
-                        Lat: today.Lat,
-                        Long_: today.Long_,
-                        Confirmed: 0,
-                        Recovered: 0,
-                        Deaths: 0
-                    }
-                }
-
-                yesterday.Recovered = parseInt(canadaRecs.find(item => item.Province == data[4][i].Province).Recovered_Y, 10);
-
-                // do not plot points if no cases exist
-                if (today.Confirmed != 0) {
-                    plotPoint(today, yesterday, twoDaysBack);
-                }
         
-                CanadaTotals.Confirmed += parseInt(today.Confirmed, 10);
-                CanadaTotals.Recovered += parseInt(today.Recovered, 10);
-                CanadaTotals.Deaths += parseInt(today.Deaths, 10);
-                CanadaTotals.Confirmed_Y += parseInt(yesterday.Confirmed, 10);
-                CanadaTotals.Confirmed_Y2 += parseInt(twoDaysBack.Confirmed, 10);
-                CanadaTotals.Recovered_Y += parseInt(yesterday.Recovered, 10);
-                CanadaTotals.Deaths_Y += parseInt(yesterday.Deaths, 10);
-            }
-        }
-        CanadaTotals.Active = CanadaTotals.Confirmed - CanadaTotals.Recovered - CanadaTotals.Deaths;
-        CanadaTotals.New = CanadaTotals.Confirmed - CanadaTotals.Confirmed_Y;
-        CanadaTotals.Active_Y = CanadaTotals.Confirmed_Y - CanadaTotals.Recovered_Y - CanadaTotals.Deaths_Y;
-    
         // Update doc with global numbers
+        globalActive = globalConfirmed - globalDeaths - globalRecovered;
+        globalA_Y = globalC_Y - globalD_Y - globalR_Y;
         document.getElementById('activeCount').innerHTML = globalActive.toLocaleString();
         document.getElementById('recoveredCount').innerHTML = globalRecovered.toLocaleString();
         document.getElementById('deathCount').innerHTML = globalDeaths.toLocaleString();
@@ -670,9 +682,9 @@ async function generateMap(currentDate, yest, yest2) {
             today.Active = parseInt(today.Confirmed, 10) - parseInt(today.Recovered, 10) - parseInt(today.Deaths, 10);
             yesterday.Active = parseInt(yesterday.Confirmed, 10) - parseInt(yesterday.Recovered, 10) - parseInt(yesterday.Deaths, 10);
     
-            globalActive += parseInt(today.Active, 10);
+            globalConfirmed += parseInt(today.Confirmed, 10);
             globalDeaths += parseInt(today.Deaths, 10);
-            globalA_Y += parseInt(yesterday.Active, 10);
+            globalC_Y += parseInt(yesterday.Confirmed, 10);
             globalD_Y += parseInt(yesterday.Deaths, 10);
     
             // count USA and Canada recoveries from JHU for global total
