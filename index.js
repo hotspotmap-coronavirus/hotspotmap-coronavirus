@@ -169,6 +169,10 @@ async function generateMap(currentDate, yest, yest2) {
     // get files for US states recoveries
     await Promise.all(filesUSA).then(async function (USstates) {
         var USrecs = [];
+        // check if recovery data was updated first
+        if (USstates[0].dateDiff != currentDate.getUTCFullYear() + "-" + formatZero(currentDate.getUTCMonth() + 1) + "-" + formatZero(currentDate.getUTCDate())) {
+            dateDiff++;
+        }
         for (let i = 0; i < USstates.length; i++) {
             USrecs.push({
                 State: stateOrder[i],
@@ -971,9 +975,6 @@ function makeChart(region, province = "") {
             case "Virgin Islands":
                 fileName = "US%20Virgin%20Islands";
                 break;
-            case "Northern Mariana Islands":
-                fileName = "";
-                break;
             default:
                 fileName = province.split(' ').join('%20');
                 break;
@@ -1135,9 +1136,11 @@ function makeChart(region, province = "") {
                 recs.push(parseInt(data[1][i].Recovered, 10));
             }
 
+            // always remove first elem because it's jan 21
+            recs.splice(0, 1);
             // catch mismatch length in recovery data
             while (recs.length > confs.length && recs.length != confs.length) {
-                recs.splice(0, 1);
+                recs.splice(recs.length - 1, 1);
             }
 
             // create active cases data
