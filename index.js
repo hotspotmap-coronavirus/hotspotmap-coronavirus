@@ -170,7 +170,7 @@ async function generateMap(currentDate, yest, yest2) {
     await Promise.all(filesUSA).then(async function (USstates) {
         var USrecs = [];
         // check if recovery data was updated first
-        if (USstates[0].date_day != currentDate.getUTCFullYear() + "-" + formatZero(currentDate.getUTCMonth() + 1) + "-" + formatZero(currentDate.getUTCDate())) {
+        if (USstates[0][0].date_day != currentDate.getUTCFullYear() + "-" + formatZero(currentDate.getUTCMonth() + 1) + "-" + formatZero(currentDate.getUTCDate())) {
             dateDiff++;
         }
         for (let i = 0; i < USstates.length; i++) {
