@@ -130,12 +130,13 @@ async function generateMap(currentDate, yest, yest2) {
     document.getElementById("map").style.display = "none";
     document.getElementById("mapLoader").style.display = "inline";
 
+    var stateOrder = [];
+    var filesUSA = [];
+    var filesCanada = [];
+    var canadaOrder = [];
+
     await Promise.all([d3.csv("./data/statelatlong.csv"), d3.csv("./data/canadaprovinces.csv")])
     .then(async function (locations) {
-        var stateOrder = [];
-        var filesUSA = [];
-        var filesCanada = [];
-        var canadaOrder = [];
         for (let i = 0; i < locations[0].length; i++) {
             stateOrder.push(locations[0][i].City);
             var fileName;
@@ -165,32 +166,35 @@ async function generateMap(currentDate, yest, yest2) {
             filesCanada.push(d3.csv("https://raw.githubusercontent.com/Perishleaf/data-visualisation-scripts/master/dash-2019-coronavirus/cumulative_data/"
                 + locations[1][i].Province.split(' ').join('%20') + ".csv"));
         }
+
+    });
+
+    var USrecs = [];
+    var canadaRecs = [];
+    var recDate = currentDate.getUTCFullYear() + "-" + formatZero(currentDate.getUTCMonth() + 1) + "-" + formatZero(currentDate.getUTCDate());
+    var recDate_Y = yest.getUTCFullYear() + "-" + formatZero(yest.getUTCMonth() + 1) + "-" + formatZero(yest.getUTCDate());
     
     // get files for US states recoveries
     await Promise.all(filesUSA).then(async function (USstates) {
-        var USrecs = [];
-        // check if recovery data was updated first
-        if (!USstates[0].some(e => e.date_day == currentDate.getUTCFullYear() + "-" + formatZero(currentDate.getUTCMonth() + 1) + "-" + formatZero(currentDate.getUTCDate()))) {
-            dateDiff++;
-        }
         for (let i = 0; i < USstates.length; i++) {
             USrecs.push({
                 State: stateOrder[i],
-                Recovered: USstates[i][dateDiff].Recovered,
-                Recovered_Y: USstates[i][dateDiff + 1].Recovered
+                Recovered: USstates[i].find(e => e.date_day === recDate).Recovered,
+                Recovered_Y: USstates[i].find(e => e.date_day === recDate_Y).Recovered,
             });
         }
+    });
     
     // get files for Canadian provinces recoveries
     await Promise.all(filesCanada).then(async function (canadaStates) {
-        var canadaRecs = [];
         for (let i = 0; i < canadaStates.length; i++) {
             canadaRecs.push({
                 Province: canadaOrder[i],
-                Recovered: canadaStates[i][dateDiff].Recovered,
-                Recovered_Y: canadaStates[i][dateDiff + 1].Recovered
+                Recovered: canadaStates[i].find(e => e.date_day === recDate).Recovered,
+                Recovered_Y: canadaStates[i].find(e => e.date_day === recDate_Y).Recovered,
             });
         }
+    });
     
     // process full data
     await Promise.all([
@@ -950,7 +954,7 @@ async function generateMap(currentDate, yest, yest2) {
             }
             mymap.scrollWheelZoom.enable();
         });
-    })})})}); // <== dont worry about it...
+    }); 
 }
 
 // create chart based on selected region and province
@@ -1300,21 +1304,6 @@ function makeChart(region, province = "") {
             var areaR;
             var areaD = data[2].find(item => item['Country/Region'] === region && item['Province/State'] === province);
 
-            // use other files for Canadian recoveries
-            if (region == "Canada") {
-                for (let i = data[1].length - 1; i >= 0; i--) {
-                    recs.push(parseInt(data[1][i].Recovered, 10));
-                }
-            }
-            else {
-                areaR = data[1].find(item => item['Country/Region'] === region && item['Province/State'] === province);
-                for (let [key, value] of Object.entries(areaR)) {
-                    if (key != "Province/State" && key != "Country/Region" && key != "Lat" && key != "Long") {
-                        recs.push(parseInt(value, 10));
-                    }
-                }
-            }
-
             // Confirmed cases
             for (let [key, value] of Object.entries(areaC)) {
                 if (key != "Province/State" && key != "Country/Region" && key != "Lat" && key != "Long") {
@@ -1327,6 +1316,28 @@ function makeChart(region, province = "") {
             for (let [key, value] of Object.entries(areaD)) {
                 if (key != "Province/State" && key != "Country/Region" && key != "Lat" && key != "Long") {
                     deaths.push(parseInt(value, 10));
+                }
+            }
+
+            // use other files for Canadian recoveries
+            if (region == "Canada") {
+                for (let i = data[1].length - 1; i >= 0; i--) {
+                    recs.push(parseInt(data[1][i].Recovered, 10));
+                }
+
+                // always remove first elem because it's jan 21
+                recs.splice(0, 1);
+                // catch mismatch length in recovery data
+                while (recs.length > confs.length && recs.length != confs.length) {
+                    recs.splice(recs.length - 1, 1);
+                }
+            }
+            else {
+                areaR = data[1].find(item => item['Country/Region'] === region && item['Province/State'] === province);
+                for (let [key, value] of Object.entries(areaR)) {
+                    if (key != "Province/State" && key != "Country/Region" && key != "Lat" && key != "Long") {
+                        recs.push(parseInt(value, 10));
+                    }
                 }
             }
 
