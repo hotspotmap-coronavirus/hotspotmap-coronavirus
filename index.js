@@ -76,19 +76,17 @@ async function initialize() {
     var currentDate = new Date();
     currentDate.setUTCDate(currentDate.getUTCDate() - 1);
 
-    // check if today's file exists, otherwise roll back to yesterday
-    await fetch("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/" + formatZero(currentDate.getUTCMonth() + 1) + "-" + formatZero(currentDate.getUTCDate()) + "-" + currentDate.getUTCFullYear() + ".csv")
-        .then((response) => {
-        if (response.status == 404) {
-          throw new Error("Today's file not available yet");
-        }
-        return response;
-    }).catch((error) => {
-        console.log(error);
-        currentDate.setUTCDate(currentDate.getUTCDate() - 1);
-        slider.min = 1;
-        slider.value = 1;
-    });
+    // check if today's data exists, otherwise roll back to yesterday
+    await d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
+        .then(function(data) {
+            if (!data[0][(currentDate.getUTCMonth() + 1) + "/" + currentDate.getUTCDate() + "/" + (currentDate.getUTCFullYear() - 2000)]) {
+                console.log("Today's data not uploaded yet");
+                currentDate.setUTCDate(currentDate.getUTCDate() - 1);
+                slider.min = 1;
+                slider.value = 1;
+            }
+        });
+
     
     var yest = new Date(currentDate);
     yest.setUTCDate(currentDate.getUTCDate() - 1);
