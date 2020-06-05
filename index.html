@@ -13,7 +13,8 @@
                 crossorigin=""></script>
         <script src="https://d3js.org/d3.v5.min.js"></script>
         <script src='https://api.mapbox.com/mapbox.js/v3.3.0/mapbox.js'></script>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/0.5.7/chartjs-plugin-annotation.min.js"></script>
         <link href='https://api.mapbox.com/mapbox.js/v3.3.0/mapbox.css' rel='stylesheet'/> 
     </head>
     <style>
@@ -98,8 +99,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
-                    
+            </div>             
                 
             <div class="ui equal width grid" id="info">
                 <div class="row" style="margin-bottom: -1em;">
@@ -111,7 +111,7 @@
                 <div class="row">
                     <div class="column">
                         <h3 style="margin-bottom: 0em; margin-top: -0.2em;">Cases Over Time</h3>
-                        <canvas id="infectionChart" height=150></canvas>
+                        <canvas id="infectionChart" height=140 style="margin-bottom: 0.4em;"></canvas>
                         <div class="four ui buttons mini">
                             <button class="ui yellow button mini" id="activeButton" onclick="clickChartButton('activeButton')">Active Cases</button>
                             <button class="ui blue button mini" id="recoveredButton" onclick="clickChartButton('recoveredButton')">Recovered</button>
@@ -120,7 +120,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="row" style="margin-top: -1em;">
+                <div class="row" style="margin-top: -0.7em;">
                     <div class="column legend" style="padding-left: 6em; padding-right: 6em; margin-top: -0.5em;">
                         <h4>Number of New Cases</h4>
                         <div class="row" style="height: 1em;">

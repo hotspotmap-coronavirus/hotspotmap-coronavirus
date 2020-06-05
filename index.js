@@ -62,6 +62,7 @@ slider.onchange = async function() {
     // update map to selected date
     mymap.remove();
     slider.disabled = true;
+    makeChart("Global");
     await generateMap(thisDay, prevDay, prevDay2);
     slider.disabled = false;
 }
@@ -1082,8 +1083,11 @@ function makeChart(region, province = "") {
                 for (let j = i - 6; j <= i; j++) {
                     weeklyGrowth += increase[j];
                 }
-                trend.push({x: confs[i], y: weeklyGrowth});
-                exponential.push({x: confs[i], y: confs[i]});
+                // filter out bad data points, duplicate points, and points where confirmed was 0
+                if (weeklyGrowth <= confs[i] && trend.findIndex(val => val.y === weeklyGrowth) == -1 && confs[i] != 0) {
+                    trend.push({x: confs[i], y: weeklyGrowth});
+                    exponential.push({x: confs[i], y: confs[i]});
+                }
             }
         }
         // Charts for US states
@@ -1167,13 +1171,16 @@ function makeChart(region, province = "") {
                 for (let j = i - 6; j <= i; j++) {
                     weeklyGrowth += increase[j];
                 }
-                trend.push({x: confs[i], y: weeklyGrowth});
-                exponential.push({x: confs[i], y: confs[i]});
+                // filter out bad data points, duplicate points, and points where confirmed was 0
+                if (weeklyGrowth <= confs[i] && trend.findIndex(val => val.y === weeklyGrowth) == -1 && confs[i] != 0) {
+                    trend.push({x: confs[i], y: weeklyGrowth});
+                    exponential.push({x: confs[i], y: confs[i]});
+                }
             }
 
-            // chop to 100th confirmed case, or first confirmed case if data is too small
+            // chop to 100th confirmed case, or first confirmed case if data is too small or selected date comes first
             var firstIdx = confs.findIndex(val => val >= 100);
-            if (firstIdx == -1 || firstIdx > confs.length - 5) {
+            if (firstIdx == -1 || firstIdx > confs.length - 5 || firstIdx > dateLabels.length - 1 - dateDiff) {
                 firstIdx = confs.findIndex(val => val >= 1);
             }
             confs.splice(0, firstIdx);
@@ -1280,13 +1287,16 @@ function makeChart(region, province = "") {
                 for (let j = i - 6; j <= i; j++) {
                     weeklyGrowth += increase[j];
                 }
-                trend.push({x: confs[i], y: weeklyGrowth});
-                exponential.push({x: confs[i], y: confs[i]});
+                // filter out bad data points, duplicate points, and points where confirmed was 0
+                if (weeklyGrowth <= confs[i] && trend.findIndex(val => val.y === weeklyGrowth) == -1 && confs[i] != 0) {
+                    trend.push({x: confs[i], y: weeklyGrowth});
+                    exponential.push({x: confs[i], y: confs[i]});
+                }
             }
 
-            // chop to 100th confirmed case, or first confirmed case if data is too small
+            // chop to 100th confirmed case, or first confirmed case if data is too small or selected date comes first
             var firstIdx = confs.findIndex(val => val >= 100);
-            if (firstIdx == -1 || firstIdx > confs.length - 5) {
+            if (firstIdx == -1 || firstIdx > confs.length - 5 || firstIdx > dateLabels.length - 1 - dateDiff) {
                 firstIdx = confs.findIndex(val => val >= 1);
             }
             confs.splice(0, firstIdx);
@@ -1366,13 +1376,16 @@ function makeChart(region, province = "") {
                 for (let j = i - 6; j <= i; j++) {
                     weeklyGrowth += increase[j];
                 }
-                trend.push({x: confs[i], y: weeklyGrowth});
-                exponential.push({x: confs[i], y: confs[i]});
+                // filter out bad data points, duplicate points, and points where confirmed was 0
+                if (weeklyGrowth <= confs[i] && trend.findIndex(val => val.y === weeklyGrowth) == -1 && confs[i] != 0) {
+                    trend.push({x: confs[i], y: weeklyGrowth});
+                    exponential.push({x: confs[i], y: confs[i]});
+                }
             }
 
-            // chop to 100th confirmed case, or first confirmed case if data is too small
+            // chop to 100th confirmed case, or first confirmed case if data is too small or selected date comes first
             var firstIdx = confs.findIndex(val => val >= 100);
-            if (firstIdx == -1 || firstIdx > confs.length - 5) {
+            if (firstIdx == -1 || firstIdx > confs.length - 5 || firstIdx > dateLabels.length - 1 - dateDiff) {
                 firstIdx = confs.findIndex(val => val >= 1);
             }
             confs.splice(0, firstIdx);
@@ -1472,6 +1485,17 @@ function makeChart(region, province = "") {
                             },
                         // type: 'logarithmic'
                         }]
+                },
+                annotation: {
+                    annotations: [{
+                        type: "line",
+                        mode: "vertical",
+                        scaleID: "x-axis-0",
+                        value: dateLabels[dateLabels.length - 1 - dateDiff],
+                        borderColor: "white",
+                        borderWidth: 3,
+                        borderDash: [5, 5],
+                    }]
                 }
             }
         });
@@ -1511,9 +1535,10 @@ function makeChart(region, province = "") {
                 scales: {
                     xAxes: [{
                         gridLines: { 
-                            display: false,
+                            display: true,
                             color: "#4f4f4f",
-                            zeroLineColor: '#e0e0e0'
+                            zeroLineColor: '#e0e0e0',
+                            drawOnChartArea: false
                             },
                         scaleLabel: {
                             display: true,
@@ -1527,9 +1552,10 @@ function makeChart(region, province = "") {
                     }],
                     yAxes: [{
                         gridLines: { 
-                            display: false,
+                            display: true,
                             color: "#4f4f4f", 
-                            zeroLineColor: '#e0e0e0'
+                            zeroLineColor: '#e0e0e0',
+                            drawOnChartArea: false,
                             },
                         scaleLabel: {
                             display: true,
