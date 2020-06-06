@@ -1493,7 +1493,7 @@ function makeChart(region, province = "") {
                         scaleID: "x-axis-0",
                         value: dateLabels[dateLabels.length - 1 - dateDiff],
                         borderColor: "white",
-                        borderWidth: 3,
+                        borderWidth: 2,
                         borderDash: [5, 5],
                     }]
                 }
