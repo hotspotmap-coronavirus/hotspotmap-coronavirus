@@ -1084,7 +1084,7 @@ function makeChart(region, province = "") {
                     weeklyGrowth += increase[j];
                 }
                 // filter out bad data points, duplicate points, and points where confirmed was 0
-                if (weeklyGrowth <= confs[i] && trend.findIndex(val => val.y === weeklyGrowth) == -1 && confs[i] != 0) {
+                if (weeklyGrowth <= confs[i] && trend.findIndex(val => val.y === weeklyGrowth && val.x === confs[i]) == -1 && confs[i] != 0) {
                     trend.push({x: confs[i], y: weeklyGrowth});
                     exponential.push({x: confs[i], y: confs[i]});
                 }
@@ -1172,7 +1172,7 @@ function makeChart(region, province = "") {
                     weeklyGrowth += increase[j];
                 }
                 // filter out bad data points, duplicate points, and points where confirmed was 0
-                if (weeklyGrowth <= confs[i] && trend.findIndex(val => val.y === weeklyGrowth) == -1 && confs[i] != 0) {
+                if (weeklyGrowth <= confs[i] && trend.findIndex(val => val.y === weeklyGrowth && val.x === confs[i]) == -1 && confs[i] != 0) {
                     trend.push({x: confs[i], y: weeklyGrowth});
                     exponential.push({x: confs[i], y: confs[i]});
                 }
@@ -1288,7 +1288,7 @@ function makeChart(region, province = "") {
                     weeklyGrowth += increase[j];
                 }
                 // filter out bad data points, duplicate points, and points where confirmed was 0
-                if (weeklyGrowth <= confs[i] && trend.findIndex(val => val.y === weeklyGrowth) == -1 && confs[i] != 0) {
+                if (weeklyGrowth <= confs[i] && trend.findIndex(val => val.y === weeklyGrowth && val.x === confs[i]) == -1 && confs[i] != 0) {
                     trend.push({x: confs[i], y: weeklyGrowth});
                     exponential.push({x: confs[i], y: confs[i]});
                 }
@@ -1377,7 +1377,7 @@ function makeChart(region, province = "") {
                     weeklyGrowth += increase[j];
                 }
                 // filter out bad data points, duplicate points, and points where confirmed was 0
-                if (weeklyGrowth <= confs[i] && trend.findIndex(val => val.y === weeklyGrowth) == -1 && confs[i] != 0) {
+                if (weeklyGrowth <= confs[i] && trend.findIndex(val => val.y === weeklyGrowth && val.x === confs[i]) == -1 && confs[i] != 0) {
                     trend.push({x: confs[i], y: weeklyGrowth});
                     exponential.push({x: confs[i], y: confs[i]});
                 }
