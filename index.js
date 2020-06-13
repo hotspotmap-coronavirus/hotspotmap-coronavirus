@@ -707,7 +707,7 @@ async function generateMap(currentDate, yest, yest2) {
             globalN_Y += parseInt(yesterday.Confirmed, 10) - parseInt(twoDaysAgo.Confirmed, 10);
                 
             var color = '#ed2d1f';
-            if (caseChange <= 20) {
+            if (caseChange <= 10) {
                 color = '#fff4e9';
             }
             else if (caseChange <= 100) {
