@@ -289,6 +289,12 @@ async function generateMap(currentDate, yest, yest2) {
                     Recovered: recs[(currentDate.getUTCMonth() + 1) + "/" + currentDate.getUTCDate() + "/" + (currentDate.getUTCFullYear() - 2000)],
                     Deaths: dead[(currentDate.getUTCMonth() + 1) + "/" + currentDate.getUTCDate() + "/" + (currentDate.getUTCFullYear() - 2000)]
                 }
+
+                // catch for incorrect lat-long for mauritania
+                if (data[0][i]['Country/Region'] == 'Mauritania') {
+                    today['Lat'] = 20.660316;
+                    today['Long_'] = -9.727033;
+                }
                 
                 var yesterday = {
                     Province_State: data[0][i]['Province/State'],
@@ -310,7 +316,6 @@ async function generateMap(currentDate, yest, yest2) {
                     Deaths: dead[(yest2.getUTCMonth() + 1) + "/" + yest2.getUTCDate() + "/" + (yest2.getUTCFullYear() - 2000)]
                 }
 
-                //TODO: need to make a catch for when selected date is the beginning of the dataset
                 if (today.Confirmed > 0) {
                     plotPoint(today, yesterday, twoDaysBack);
                 }
@@ -540,7 +545,7 @@ async function generateMap(currentDate, yest, yest2) {
             }).bindPopup('<div id="PopupTitle">Australia</div>'
             + '<div id="PopupBody">New Cases: ' + 
             (AustraliaTotals.New == 0 ? '<strong>0</strong><br>' : '<strong class="caseChange">' + AustraliaTotals.New + '</strong><br>')
-            + 'Change in Daily Increase: ' + (AustraliaTotals.New - AustraliaTotals.Confirmed_Y - AustraliaTotals.Confirmed_Y2 == 0 ? 
+            + 'Change in Daily Increase: ' + (AustraliaTotals.New - (AustraliaTotals.Confirmed_Y - AustraliaTotals.Confirmed_Y2) == 0 ? 
                 '<strong>0</strong>' : (AustraliaTotals.New - (AustraliaTotals.Confirmed_Y - AustraliaTotals.Confirmed_Y2) > 0 ? 
                     '<strong style="color: orange;"><i class="arrow up icon"></i>' + (AustraliaTotals.New - (AustraliaTotals.Confirmed_Y - AustraliaTotals.Confirmed_Y2)) + '</strong>'
                     : '<strong style="color: cyan;"><i class="arrow down icon"></i>' + ((AustraliaTotals.New - (AustraliaTotals.Confirmed_Y - AustraliaTotals.Confirmed_Y2)) * -1) + '</strong>')) 
@@ -565,7 +570,7 @@ async function generateMap(currentDate, yest, yest2) {
             }).bindPopup('<div id="PopupTitle">Canada</div>'
             + '<div id="PopupBody">New Cases: ' + 
             (CanadaTotals.New == 0 ? '<strong>0</strong><br>' : '<strong class="caseChange">' + CanadaTotals.New + '</strong><br>')
-            + 'Change in Daily Increase: ' + (CanadaTotals.New - CanadaTotals.Confirmed_Y - CanadaTotals.Confirmed_Y2 == 0 ? 
+            + 'Change in Daily Increase: ' + (CanadaTotals.New - (CanadaTotals.Confirmed_Y - CanadaTotals.Confirmed_Y2) == 0 ? 
                 '<strong>0</strong>' : (CanadaTotals.New - (CanadaTotals.Confirmed_Y - CanadaTotals.Confirmed_Y2) > 0 ? 
                     '<strong style="color: orange;"><i class="arrow up icon"></i>' + (CanadaTotals.New - (CanadaTotals.Confirmed_Y - CanadaTotals.Confirmed_Y2)) + '</strong>'
                     : '<strong style="color: cyan;"><i class="arrow down icon"></i>' + ((CanadaTotals.New - (CanadaTotals.Confirmed_Y - CanadaTotals.Confirmed_Y2)) * -1) + '</strong>')) 
@@ -590,7 +595,7 @@ async function generateMap(currentDate, yest, yest2) {
             }).bindPopup('<div id="PopupTitle">China</div>'
             + '<div id="PopupBody">New Cases: ' + 
             (ChinaTotals.New == 0 ? '<strong>0</strong><br>' : '<strong class="caseChange">' + ChinaTotals.New + '</strong><br>')
-            + 'Change in Daily Increase: ' + (ChinaTotals.New - ChinaTotals.Confirmed_Y - ChinaTotals.Confirmed_Y2 == 0 ? 
+            + 'Change in Daily Increase: ' + (ChinaTotals.New - (ChinaTotals.Confirmed_Y - ChinaTotals.Confirmed_Y2) == 0 ? 
                 '<strong>0</strong>' : (ChinaTotals.New - (ChinaTotals.Confirmed_Y - ChinaTotals.Confirmed_Y2) > 0 ? 
                     '<strong style="color: orange;"><i class="arrow up icon"></i>' + (ChinaTotals.New - (ChinaTotals.Confirmed_Y - ChinaTotals.Confirmed_Y2)) + '</strong>'
                     : '<strong style="color: cyan;"><i class="arrow down icon"></i>' + ((ChinaTotals.New - (ChinaTotals.Confirmed_Y - ChinaTotals.Confirmed_Y2)) * -1) + '</strong>')) 
@@ -615,7 +620,7 @@ async function generateMap(currentDate, yest, yest2) {
             }).bindPopup('<div id="PopupTitle">United States</div>'
             + '<div id="PopupBody">New Cases: ' + 
             (USATotals.New == 0 ? '<strong>0</strong><br>' : '<strong class="caseChange">' + USATotals.New + '</strong><br>')
-            + 'Change in Daily Increase: ' + (USATotals.New - USATotals.Confirmed_Y - USATotals.Confirmed_Y2 == 0 ? 
+            + 'Change in Daily Increase: ' + (USATotals.New - (USATotals.Confirmed_Y - USATotals.Confirmed_Y2) == 0 ? 
                 '<strong>0</strong>' : (USATotals.New - (USATotals.Confirmed_Y - USATotals.Confirmed_Y2) > 0 ? 
                     '<strong style="color: orange;"><i class="arrow up icon"></i>' + (USATotals.New - (USATotals.Confirmed_Y - USATotals.Confirmed_Y2)) + '</strong>'
                     : '<strong style="color: cyan;"><i class="arrow down icon"></i>' + ((USATotals.New - (USATotals.Confirmed_Y - USATotals.Confirmed_Y2)) * -1) + '</strong>')) 
