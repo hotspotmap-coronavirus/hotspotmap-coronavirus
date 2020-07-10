@@ -712,17 +712,20 @@ async function generateMap(currentDate, yest, yest2) {
             globalN_Y += parseInt(yesterday.Confirmed, 10) - parseInt(twoDaysAgo.Confirmed, 10);
                 
             var color = '#ed2d1f';
-            if (caseChange <= 10) {
+            if (caseChange < 10) {
                 color = '#fff4e9';
             }
-            else if (caseChange <= 100) {
-                color = '#fccda8'
+            else if (caseChange < 100) {
+                color = '#fcd5b4'
             }
-            else if (caseChange <= 500) {
-                color = '#f8a36f'
+            else if (caseChange < 500) {
+                color = '#fab484'
             }
-            else if (caseChange <= 2000) {
-                color = '#f37240'
+            else if (caseChange < 2000) {
+                color = '#f6905b'
+            }
+            else if (caseChange < 5000) {
+                color = '#f26839';
             }
             
             /// EXPERIMENTING ///
