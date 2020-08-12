@@ -3,10 +3,6 @@
 var mymap;
 var dateDiff = 0;
 
-d3.csv("https://api.covidtracking.com/v1/states/de/daily.csv").then(function (data) {
-    console.log(data.find(e => e.date === "20200805").recovered);
-});
-
 // charts
 var canvas = document.getElementById('infectionChart');
 var ctx = canvas.getContext('2d');
@@ -138,30 +134,22 @@ async function generateMap(currentDate, yest, yest2) {
     var filesCanada = [];
     var canadaOrder = [];
 
-    await Promise.all([d3.csv("./data/statelatlong.csv"), d3.csv("./data/canadaprovinces.csv")])
-    .then(async function (locations) {
+    await Promise.all([d3.csv("./data/statelatlong.csv")]).then(function (locations) {
         for (let i = 0; i < locations[0].length; i++) {
             stateOrder.push(locations[0][i].City);
             if (locations[0][i].State != "") {
                 filesUSA.push(d3.csv("https://api.covidtracking.com/v1/states/" + locations[0][i].State + "/daily.csv"));
             }
         }
-    
-        // for (let i = 0; i < locations[1].length; i++) {
-        //     canadaOrder.push(locations[1][i].Province);
-        //     filesCanada.push(d3.csv("https://raw.githubusercontent.com/Perishleaf/data-visualisation-scripts/master/dash-2019-coronavirus/cumulative_data/"
-        //         + locations[1][i].Province.split(' ').join('%20') + ".csv"));
-        // }
-
     });
 
     var USrecs = [];
     var canadaRecs = [];
-    var recDate = currentDate.getUTCFullYear() + "" + formatZero(currentDate.getUTCMonth() + 1) + "" + formatZero(currentDate.getUTCDate());
-    var recDate_Y = yest.getUTCFullYear() + "" + formatZero(yest.getUTCMonth() + 1) + "" + formatZero(yest.getUTCDate());
     
-    // get files for US states recoveries
-    await Promise.all(filesUSA).then(async function (USstates) {
+    // get data for US states recoveries
+    await Promise.all(filesUSA).then(function (USstates) {
+        var recDate = currentDate.getUTCFullYear() + "" + formatZero(currentDate.getUTCMonth() + 1) + "" + formatZero(currentDate.getUTCDate());
+        var recDate_Y = yest.getUTCFullYear() + "" + formatZero(yest.getUTCMonth() + 1) + "" + formatZero(yest.getUTCDate());
         for (let i = 0; i < USstates.length; i++) {
             var UStoday = USstates[i].find(e => e.date === recDate);
             var USyest = USstates[i].find(e => e.date === recDate_Y)
@@ -173,16 +161,23 @@ async function generateMap(currentDate, yest, yest2) {
         }
     });
     
-    // get files for Canadian provinces recoveries
-    /*await Promise.all(filesCanada).then(async function (canadaStates) {
-        for (let i = 0; i < canadaStates.length; i++) {
+    // get data for Canadian provinces recoveries
+    await Promise.all([
+        d3.csv("https://health-infobase.canada.ca/src/data/covidLive/covid19.csv"),
+        d3.csv("./data/canadaprovinces.csv")
+    ]).then(function (CAdata) {
+        var recDate = formatZero(currentDate.getUTCDate()) + "-" + formatZero(currentDate.getUTCMonth() + 1) + "-" + currentDate.getUTCFullYear();
+        var recDate_Y = formatZero(yest.getUTCDate()) + "-" + formatZero(yest.getUTCMonth() + 1) + "-" + yest.getUTCFullYear();
+        for (let i = 0; i < CAdata[1].length; i++) {
+            var CAtoday = CAdata[0].find(e => e.date === recDate && e.prname === CAdata[1][i].Province);
+            var CAyest = CAdata[0].find(e => e.date === recDate_Y && e.prname === CAdata[1][i].Province);
             canadaRecs.push({
-                Province: canadaOrder[i],
-                Recovered: canadaStates[i].find(e => e.date_day === recDate).Recovered,
-                Recovered_Y: canadaStates[i].find(e => e.date_day === recDate_Y).Recovered,
+                Province: CAdata[1][i].Province,
+                Recovered: !CAtoday || CAtoday.numrecover === "" ? 0 : CAtoday.numrecover,
+                Recovered_Y: !CAyest || CAyest.numrecover === "" ? 0 : CAyest.numrecover,
             });
         }
-    });*/
+    });
     
     // process full data
     await Promise.all([
@@ -336,7 +331,7 @@ async function generateMap(currentDate, yest, yest2) {
                     Lat: data[0][i].Lat,
                     Long_: data[0][i].Long,
                     Confirmed: confs[(currentDate.getUTCMonth() + 1) + "/" + currentDate.getUTCDate() + "/" + (currentDate.getUTCFullYear() - 2000)],
-                    Recovered: 0,
+                    Recovered: parseInt(canadaRecs.find(e => e.Province === data[0][i]['Province/State']).Recovered, 10),
                     Deaths: dead[(currentDate.getUTCMonth() + 1) + "/" + currentDate.getUTCDate() + "/" + (currentDate.getUTCFullYear() - 2000)]
                 }
                 
@@ -346,7 +341,7 @@ async function generateMap(currentDate, yest, yest2) {
                     Lat: data[0][i].Lat,
                     Long_: data[0][i].Long,
                     Confirmed: confs[(yest.getUTCMonth() + 1) + "/" + yest.getUTCDate() + "/" + (yest.getUTCFullYear() - 2000)],
-                    Recovered: 0,
+                    Recovered: parseInt(canadaRecs.find(e => e.Province === data[0][i]['Province/State']).Recovered_Y, 10),
                     Deaths: dead[(yest.getUTCMonth() + 1) + "/" + yest.getUTCDate() + "/" + (yest.getUTCFullYear() - 2000)]
                 }
 
@@ -616,7 +611,21 @@ async function generateMap(currentDate, yest, yest2) {
                 + '&emsp;(+' + (USATotals.Deaths - USATotals.Deaths_Y) + ')</strong><br>'
             + 'Total Cases: <strong>' + USATotals.Confirmed + '</strong></div>'
             ).on('click', L.bind(makeChart, null, "US", ""))
-            .on('popupclose', L.bind(makeChart, null, "Global", ""))
+            .on('popupclose', L.bind(makeChart, null, "Global", "")),
+
+            // Hawaii flag cuz why not
+            L.marker([25.148794, -156.429348],{
+                icon: L.icon({
+                    iconUrl: 'images/HawaiiFlag.png',
+                    iconSize: [20, 10],
+                    iconAnchor: [10, 5]
+                })
+            }).bindPopup('<div id="PopupTitle">This map was made in Hawaii</div>'
+                + '<div id="PopupBody">This map shows the current case numbers around the world of the COVID-19 pandemic. '
+                + 'For more information about COVID-19 in the United States, visit the ' 
+                + '<a href="https://www.cdc.gov/coronavirus/2019-ncov/index.html" target="_blank">CDC website </a>' 
+                + 'where you can find guidelines on preventing the spread of COVID-19 and protecting yourself and others. '
+                + 'Remember to social distance and wear a mask while out in public.</div>')
         ]);
 
         document.getElementById("mapLoader").style.display = "none";
@@ -965,8 +974,7 @@ async function makeChart(region, province = "") {
         });
     }
     else if (region == 'Canada' && province != "") {
-        files[1] = d3.csv("https://raw.githubusercontent.com/Perishleaf/data-visualisation-scripts/master/dash-2019-coronavirus/cumulative_data/"
-            + province.split(' ').join('%20') + ".csv");
+        files[1] = d3.csv("https://health-infobase.canada.ca/src/data/covidLive/covid19.csv");
     }
     // time series data for charts
     await Promise.all(files).then(function (data) {
@@ -1310,18 +1318,16 @@ async function makeChart(region, province = "") {
 
             // use other files for Canadian recoveries
             if (region == "Canada") {
-                // for (let i = data[1].length - 1; i >= 0; i--) {
-                //     recs.push(parseInt(data[1][i].Recovered, 10));
-                // }
+                // find all entries for the province
+                for (let i = 0; i < data[1].length; i++) {
+                    if (data[1][i].prname == province) {
+                        recs.push(data[1][i].numrecover);
+                    }
+                }
 
-                // // always remove first elem because it's jan 21
-                // recs.splice(0, 1);
-                // // catch mismatch length in recovery data
-                // while (recs.length > confs.length && recs.length != confs.length) {
-                //     recs.splice(recs.length - 1, 1);
-                // }
+                // backfill missing dates with 0 to match data length
                 while (recs.length < confs.length) {
-                    recs.push(0);
+                    recs.unshift(0);
                 }
             }
             else {
