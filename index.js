@@ -322,7 +322,8 @@ async function generateMap(currentDate, yest, yest2) {
             } 
             else if (data[0][i]['Country/Region'] == 'Canada' && data[0][i]['Province/State'] != 'Grand Princess'
                         && data[0][i]['Province/State'] != 'Diamond Princess' 
-                        && data[0][i]['Province/State'] != 'Recovered') {
+                        && data[0][i]['Province/State'] != 'Recovered'
+                        && data[0][i]['Province/State'] != 'Repatriated Travellers') {
                 var confs = data[0][i];
                 var dead = data[2].find(item => item['Country/Region'] === confs['Country/Region'] && item['Province/State'] === confs['Province/State']);
                 var today = {
